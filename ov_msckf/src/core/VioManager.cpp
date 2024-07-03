@@ -144,7 +144,7 @@ void VioManager::feed_measurement_imu(double timestamp, Eigen::Vector3d wm, Eige
 
 void VioManager::feed_measurement_monocular(double timestamp, cv::Mat& img0, size_t cam_id) {
     
-    printf(RED "Measurement_Monocular");
+   
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
 
@@ -172,8 +172,6 @@ void VioManager::feed_measurement_monocular(double timestamp, cv::Mat& img0, siz
 
 void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Mat& img1, size_t cam_id0, size_t cam_id1) {
 
-    printf(RED "Measurement_stereo");
-
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
 
@@ -182,6 +180,7 @@ void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Ma
 
     // Feed our stereo trackers, if we are not doing binocular
     if(params.use_stereo) {
+        printf(RED "Measurement_stereo_doing only stereo");
         trackFEATS->feed_stereo(timestamp, img0, img1, cam_id0, cam_id1);
     } else {
 #ifdef ILLIXR_INTEGRATION
@@ -219,7 +218,7 @@ void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Ma
 
 void VioManager::feed_measurement_simulation(double timestamp, const std::vector<int> &camids, const std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>> &feats) {
 
-    printf(RED "Measurement_simulation");
+    
 
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
