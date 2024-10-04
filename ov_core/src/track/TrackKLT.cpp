@@ -137,7 +137,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     rT1 =  boost::posix_time::microsec_clock::local_time();
     //Divide img_leftin and img_rightin into two parts
     //Dividing image left_in.
-    // Lock this data feed for this camera
+    
+
     int overlap = 10;  // overlap region to account for border effects
 
     //For image from left camera
@@ -148,6 +149,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     cv::Mat img_rightin0 = img_rightin(cv::Range::all(), cv::Range(0, img_rightin.cols / 2 + overlap));   // Left half with overlap
     cv::Mat img_rightin1 = img_rightin(cv::Range::all(), cv::Range(img_rightin.cols / 2 - overlap, img_rightin.cols));  // Right half with overlap
 
+    // Lock this data feed for this camera
     std::unique_lock<std::mutex> lck1(mtx_feeds.at(cam_id_left));
     std::unique_lock<std::mutex> lck2(mtx_feeds.at(cam_id_right));
 
@@ -159,15 +161,25 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 #ifdef ILLIXR_INTEGRATION
     // Histogram equalize
     //printf(RED"Inside Histogram ILLIXIR integration");
-    std::thread t_lhe = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin ), cv::_OutputArray(img_left ));
-    std::thread t_rhe = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin), cv::_OutputArray(img_right));
+    std::thread t_lhe0 = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin0), cv::_OutputArray(img_left0));
+    std::thread t_lhe1 = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin1), cv::_OutputArray(img_left1));
+    std::thread t_rhe0 = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin0), cv::_OutputArray(img_right0));
+    std::thread t_rhe1 = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin1), cv::_OutputArray(img_right1));
 #else /// ILLIXR_INTEGRATION
     //printf(RED"Inside Histogram else ILLIXIR integration");
-    boost::thread t_lhe = boost::thread(cv::equalizeHist, boost::cref(img_leftin), boost::ref(img_left));
-    boost::thread t_rhe = boost::thread(cv::equalizeHist, boost::cref(img_rightin), boost::ref(img_right));
+    boost::thread t_lhe0 = boost::thread(cv::equalizeHist, boost::cref(img_leftin0), boost::ref(img_left0));
+    boost::thread t_lhe1 = boost::thread(cv::equalizeHist, boost::cref(img_leftin1), boost::ref(img_left1));
+    boost::thread t_rhe0 = boost::thread(cv::equalizeHist, boost::cref(img_rightin0), boost::ref(img_right0));
+    boost::thread t_rhe1 = boost::thread(cv::equalizeHist, boost::cref(img_rightin1), boost::ref(img_right1));
 #endif /// ILLIXR_INTEGRATION
-    t_lhe.join();
-    t_rhe.join();
+    t_lhe0.join();
+    t_lhe1.join();
+    t_rhe0.join();
+    t_rhe1.join();
+
+    hconcat(img_left0, img_left1, img_left);  // Combine left halves
+    hconcat(img_right0, img_right1, img_right)
+
     
     rtchEnd =  boost::posix_time::microsec_clock::local_time();
     double histogram_time_me = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
