@@ -149,9 +149,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     cv::Mat img_rightin0 = img_rightin(cv::Range::all(), cv::Range(0, img_rightin.cols / 2 + overlap));   // Left half with overlap
     cv::Mat img_rightin1 = img_rightin(cv::Range::all(), cv::Range(img_rightin.cols / 2 - overlap, img_rightin.cols));  // Right half with overlap
 
-    // Lock this data feed for this camera
-    std::unique_lock<std::mutex> lck1(mtx_feeds.at(cam_id_left));
-    std::unique_lock<std::mutex> lck2(mtx_feeds.at(cam_id_right));
+   
 
     cv::Mat img_left0, img_right0, img_left1, img_right1;
     cv::Mat img_left, img_right;
@@ -227,6 +225,10 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     
     rT2 =  boost::posix_time::microsec_clock::local_time();
 
+     // Lock this data feed for this camera
+    std::unique_lock<std::mutex> lck1(mtx_feeds.at(cam_id_left));
+    std::unique_lock<std::mutex> lck2(mtx_feeds.at(cam_id_right));
+    
     // If we didn't have any successful tracks last time, just extract this time
     // This also handles, the tracking initalization on the first call to this extractor
     if(pts_last[cam_id_left].empty() || pts_last[cam_id_right].empty()) {
