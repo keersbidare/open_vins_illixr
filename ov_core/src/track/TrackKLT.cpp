@@ -135,37 +135,57 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
-
+    //Divide img_leftin and img_rightin into two parts
+    //Dividing image left_in.
     // Lock this data feed for this camera
+    int overlap = 10;  // overlap region to account for border effects
+
+    //For image from left camera
+    cv::Mat img_leftin0 = img(cv::Range::all(), cv::Range(0, img.cols / 2 + overlap));   // Left half with overlap
+    cv::Mat img_leftin1 = img(cv::Range::all(), cv::Range(img.cols / 2 - overlap, img.cols));  // Right half with overlap
+    
+    //For image from right camera
+    cv::Mat img_rightin0 = img(cv::Range::all(), cv::Range(0, img.cols / 2 + overlap));   // Left half with overlap
+    cv::Mat img_rightin1 = img(cv::Range::all(), cv::Range(img.cols / 2 - overlap, img.cols));  // Right half with overlap
+
     std::unique_lock<std::mutex> lck1(mtx_feeds.at(cam_id_left));
     std::unique_lock<std::mutex> lck2(mtx_feeds.at(cam_id_right));
 
-    cv::Mat img_left, img_right;
+    cv::Mat img_left0, img_right0, img_left1, img_right1;
+
+    rtchStrt =  boost::posix_time::microsec_clock::local_time(); 
+
 #ifdef ILLIXR_INTEGRATION
     // Histogram equalize
-    printf(RED"Inside Histogram ILLIXIR integration");
+    //printf(RED"Inside Histogram ILLIXIR integration");
     std::thread t_lhe = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin ), cv::_OutputArray(img_left ));
     std::thread t_rhe = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin), cv::_OutputArray(img_right));
 #else /// ILLIXR_INTEGRATION
-    printf(RED"Inside Histogram else ILLIXIR integration");
+    //printf(RED"Inside Histogram else ILLIXIR integration");
     boost::thread t_lhe = boost::thread(cv::equalizeHist, boost::cref(img_leftin), boost::ref(img_left));
     boost::thread t_rhe = boost::thread(cv::equalizeHist, boost::cref(img_rightin), boost::ref(img_right));
 #endif /// ILLIXR_INTEGRATION
     t_lhe.join();
     t_rhe.join();
+    
+    rtchEnd =  boost::posix_time::microsec_clock::local_time();
+    printf(RED "\n The time taken for histogram creation is ", (rtchStrt-rtchEnd).total_microseconds() * 1e-3, "\n");
 
     // Extract image pyramids (boost seems to require us to put all the arguments even if there are defaults....)
     std::vector<cv::Mat> imgpyr_left, imgpyr_right;
+
+    rtchStrt =  boost::posix_time::microsec_clock::local_time();
+
 #ifdef ILLIXR_INTEGRATION
-    printf(RED"Inside buildOpticalFlowPyramid ILLIXIR integration");
+    //printf(RED"Inside buildOpticalFlowPyramid ILLIXIR integration");
     std::thread t_lp = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_left),
                                        cv::_OutputArray(imgpyr_left), win_size, pyr_levels, false,
                                        cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
     std::thread t_rp = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_right),
                                        cv::_OutputArray(imgpyr_right), win_size, pyr_levels,
                                        false, cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-#else /// ILLIXR_INTEGRATION
-    printf(RED"Inside buildOpticalFlowPyramid else ILLIXIR integration");
+#else /// ILLIXR_INTEGRATION so this is wokring.
+    //printf(RED"Inside buildOpticalFlowPyramid else ILLIXIR integration");
     boost::thread t_lp = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left),
                                        boost::ref(imgpyr_left), boost::ref(win_size), boost::ref(pyr_levels), false,
                                        cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
@@ -176,6 +196,9 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     t_lp.join();
     t_rp.join();
 
+    rtchEnd =  boost::posix_time::microsec_clock::local_time();
+    printf(RED "\n The time taken for buildOpticalFlowPyramid creation is ", (rtchStrt-rtchEnd).total_microseconds() * 1e-3, "\n");
+    
     rT2 =  boost::posix_time::microsec_clock::local_time();
 
     // If we didn't have any successful tracks last time, just extract this time
