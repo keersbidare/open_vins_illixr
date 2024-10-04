@@ -179,9 +179,14 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     //hconcat(img_left0, img_left1, img_left);  // Combine left halves
     //hconcat(img_right0, img_right1, img_right);
-    std::thread t_left(cv::hconcat, std::cref(img_left0), std::cref(img_left1), std::ref(img_left));
-    std::thread t_right(cv::hconcat, std::cref(img_right0), std::cref(img_right1), std::ref(img_right));
+    std::thread t_left([&](){
+        cv::hconcat(img_left0,img_left1,img_left);
+        });
+    std::thread t_right([&](){
+        cv::hconcat(img_right0,img_right1,img_right);
+        });
 
+    
     // Wait for both threads to finish
     t_left.join();
     t_right.join();
