@@ -120,12 +120,12 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
     rT5 =  boost::posix_time::microsec_clock::local_time();
 
     //Timing information
-    printf(YELLOW "The below timing information is for feed_monocular in feed_stereo, the two threads");
-    printf("[TIME-KLT]: %.4f seconds for pyramid\n",(rT2-rT1).total_microseconds() * 1e-6);
-    printf("[TIME-KLT]: %.4f seconds for detection\n",(rT3-rT2).total_microseconds() * 1e-6);
-    printf("[TIME-KLT]: %.4f seconds for temporal klt\n",(rT4-rT3).total_microseconds() * 1e-6);
-    printf("[TIME-KLT]: %.4f seconds for feature DB update (%d features)\n",(rT5-rT4).total_microseconds() * 1e-6, (int)good_left.size());
-    printf("[TIME-KLT]: %.4f seconds for total\n",(rT5-rT1).total_microseconds() * 1e-6);
+    // printf(YELLOW "The below timing information is for feed_monocular in feed_stereo, the two threads");
+    // printf("[TIME-KLT]: %.4f seconds for pyramid\n",(rT2-rT1).total_microseconds() * 1e-6);
+    // printf("[TIME-KLT]: %.4f seconds for detection\n",(rT3-rT2).total_microseconds() * 1e-6);
+    // printf("[TIME-KLT]: %.4f seconds for temporal klt\n",(rT4-rT3).total_microseconds() * 1e-6);
+    // printf("[TIME-KLT]: %.4f seconds for feature DB update (%d features)\n",(rT5-rT4).total_microseconds() * 1e-6, (int)good_left.size());
+    // printf("[TIME-KLT]: %.4f seconds for total\n",(rT5-rT1).total_microseconds() * 1e-6);
 
 
 }
@@ -143,9 +143,11 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     cv::Mat img_left, img_right;
 #ifdef ILLIXR_INTEGRATION
     // Histogram equalize
+    printf(RED"Inside Histogram ILLIXIR integration");
     std::thread t_lhe = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin ), cv::_OutputArray(img_left ));
     std::thread t_rhe = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin), cv::_OutputArray(img_right));
 #else /// ILLIXR_INTEGRATION
+    printf(RED"Inside Histogram else ILLIXIR integration");
     boost::thread t_lhe = boost::thread(cv::equalizeHist, boost::cref(img_leftin), boost::ref(img_left));
     boost::thread t_rhe = boost::thread(cv::equalizeHist, boost::cref(img_rightin), boost::ref(img_right));
 #endif /// ILLIXR_INTEGRATION
@@ -155,6 +157,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     // Extract image pyramids (boost seems to require us to put all the arguments even if there are defaults....)
     std::vector<cv::Mat> imgpyr_left, imgpyr_right;
 #ifdef ILLIXR_INTEGRATION
+    printf(RED"Inside buildOpticalFlowPyramid ILLIXIR integration");
     std::thread t_lp = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_left),
                                        cv::_OutputArray(imgpyr_left), win_size, pyr_levels, false,
                                        cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
@@ -162,6 +165,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
                                        cv::_OutputArray(imgpyr_right), win_size, pyr_levels,
                                        false, cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
 #else /// ILLIXR_INTEGRATION
+    printf(RED"Inside buildOpticalFlowPyramid else ILLIXIR integration");
     boost::thread t_lp = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left),
                                        boost::ref(imgpyr_left), boost::ref(win_size), boost::ref(pyr_levels), false,
                                        cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
