@@ -141,18 +141,19 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     int overlap = 10;  // overlap region to account for border effects
 
     //For image from left camera
-    cv::Mat img_leftin0 = img_leftin(cv::Range::all(), cv::Range(0, img.cols / 2 + overlap));   // Left half with overlap
-    cv::Mat img_leftin1 = img_leftin(cv::Range::all(), cv::Range(img.cols / 2 - overlap, img.cols));  // Right half with overlap
+    cv::Mat img_leftin0 = img_leftin(cv::Range::all(), cv::Range(0, img_leftin.cols / 2 + overlap));   // Left half with overlap
+    cv::Mat img_leftin1 = img_leftin(cv::Range::all(), cv::Range(img_leftin.cols / 2 - overlap, img_leftin.cols));  // Right half with overlap
     
     //For image from right camera
-    cv::Mat img_rightin0 = img_rightin(cv::Range::all(), cv::Range(0, img.cols / 2 + overlap));   // Left half with overlap
-    cv::Mat img_rightin1 = img_rightin(cv::Range::all(), cv::Range(img.cols / 2 - overlap, img.cols));  // Right half with overlap
+    cv::Mat img_rightin0 = img_rightin(cv::Range::all(), cv::Range(0, img_rightin.cols / 2 + overlap));   // Left half with overlap
+    cv::Mat img_rightin1 = img_rightin(cv::Range::all(), cv::Range(img_rightin.cols / 2 - overlap, img_rightin.cols));  // Right half with overlap
 
     std::unique_lock<std::mutex> lck1(mtx_feeds.at(cam_id_left));
     std::unique_lock<std::mutex> lck2(mtx_feeds.at(cam_id_right));
 
     cv::Mat img_left0, img_right0, img_left1, img_right1;
     cv::Mat img_left, img_right;
+
     rtchStrt =  boost::posix_time::microsec_clock::local_time(); 
 
 #ifdef ILLIXR_INTEGRATION
@@ -169,7 +170,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     t_rhe.join();
     
     rtchEnd =  boost::posix_time::microsec_clock::local_time();
-    printf(RED "\n The time taken for histogram creation is ", (rtchStrt-rtchEnd).total_microseconds() * 1e-3, "\n");
+    double histogram_time = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
+    printf(RED "\n The time taken for histogram creation is %.3f ms.\n", histogram_time);
 
     // Extract image pyramids (boost seems to require us to put all the arguments even if there are defaults....)
     std::vector<cv::Mat> imgpyr_left, imgpyr_right;
@@ -197,7 +199,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     t_rp.join();
 
     rtchEnd =  boost::posix_time::microsec_clock::local_time();
-    printf(RED "\n The time taken for buildOpticalFlowPyramid creation is ", (rtchStrt-rtchEnd).total_microseconds() * 1e-3, "\n");
+    double pyramid_time = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
+    printf(RED "\n The time taken for buildOpticalFlowPyramid creation is %.3f ms.\n", pyramid_time);
     
     rT2 =  boost::posix_time::microsec_clock::local_time();
 
