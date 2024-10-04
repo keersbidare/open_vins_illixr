@@ -141,18 +141,18 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     int overlap = 10;  // overlap region to account for border effects
 
     //For image from left camera
-    cv::Mat img_leftin0 = img(cv::Range::all(), cv::Range(0, img.cols / 2 + overlap));   // Left half with overlap
-    cv::Mat img_leftin1 = img(cv::Range::all(), cv::Range(img.cols / 2 - overlap, img.cols));  // Right half with overlap
+    cv::Mat img_leftin0 = img_leftin(cv::Range::all(), cv::Range(0, img.cols / 2 + overlap));   // Left half with overlap
+    cv::Mat img_leftin1 = img_leftin(cv::Range::all(), cv::Range(img.cols / 2 - overlap, img.cols));  // Right half with overlap
     
     //For image from right camera
-    cv::Mat img_rightin0 = img(cv::Range::all(), cv::Range(0, img.cols / 2 + overlap));   // Left half with overlap
-    cv::Mat img_rightin1 = img(cv::Range::all(), cv::Range(img.cols / 2 - overlap, img.cols));  // Right half with overlap
+    cv::Mat img_rightin0 = img_rightin(cv::Range::all(), cv::Range(0, img.cols / 2 + overlap));   // Left half with overlap
+    cv::Mat img_rightin1 = img_rightin(cv::Range::all(), cv::Range(img.cols / 2 - overlap, img.cols));  // Right half with overlap
 
     std::unique_lock<std::mutex> lck1(mtx_feeds.at(cam_id_left));
     std::unique_lock<std::mutex> lck2(mtx_feeds.at(cam_id_right));
 
     cv::Mat img_left0, img_right0, img_left1, img_right1;
-
+    cv::Mat img_left, img_right;
     rtchStrt =  boost::posix_time::microsec_clock::local_time(); 
 
 #ifdef ILLIXR_INTEGRATION
