@@ -178,7 +178,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     t_rhe1.join();
 
     hconcat(img_left0, img_left1, img_left);  // Combine left halves
-    hconcat(img_right0, img_right1, img_right)
+    hconcat(img_right0, img_right1, img_right);
 
     
     rtchEnd =  boost::posix_time::microsec_clock::local_time();
