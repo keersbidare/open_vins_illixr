@@ -170,8 +170,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     t_rhe.join();
     
     rtchEnd =  boost::posix_time::microsec_clock::local_time();
-    double histogram_time = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
-    printf(RED "\n The time taken for histogram creation is %.3f ms.\n", histogram_time);
+    double histogram_time_me = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
+    printf(RED "\n The time taken for histogram creation is %.3f ms.\n", histogram_time_me);
 
     // Extract image pyramids (boost seems to require us to put all the arguments even if there are defaults....)
     std::vector<cv::Mat> imgpyr_left, imgpyr_right;
@@ -199,8 +199,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     t_rp.join();
 
     rtchEnd =  boost::posix_time::microsec_clock::local_time();
-    double pyramid_time = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
-    printf(RED "\n The time taken for buildOpticalFlowPyramid creation is %.3f ms.\n", pyramid_time);
+    double pyramid_time_me = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
+    printf(RED "\n The time taken for buildOpticalFlowPyramid creation is %.3f ms.\n", pyramid_time_me);
     
     rT2 =  boost::posix_time::microsec_clock::local_time();
 
