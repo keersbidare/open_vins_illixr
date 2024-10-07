@@ -127,7 +127,7 @@ namespace ov_core {
                               std::vector<cv::KeyPoint> &pts1, size_t id0, size_t id1, std::vector<uchar> &mask_out);
 
         // Timing variables
-        boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5, rT6, rT7, rtchStrt, rtchEnd;
+        boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5, rT6, rT7, rtchStrt, rtchEnd, St1, En1, St2, En2, St3, En3;
         unsigned total_images;
         double total_pyramid_time;
         double total_detection_time;

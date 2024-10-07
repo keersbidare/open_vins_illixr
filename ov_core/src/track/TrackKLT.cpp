@@ -140,7 +140,11 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     
 
     int overlap = 10;  // overlap region to account for border effects
+    cv::Mat img_left0, img_right0, img_left1, img_right1;
+    cv::Mat img_left, img_right;
 
+    rtchStrt =  boost::posix_time::microsec_clock::local_time();
+    St1 =  boost::posix_time::microsec_clock::local_time();
     //For image from left camera
     cv::Mat img_leftin0 = img_leftin(cv::Range::all(), cv::Range(0, img_leftin.cols / 2 + overlap));   // Left half with overlap
     cv::Mat img_leftin1 = img_leftin(cv::Range::all(), cv::Range(img_leftin.cols / 2 - overlap, img_leftin.cols));  // Right half with overlap
@@ -149,13 +153,12 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     cv::Mat img_rightin0 = img_rightin(cv::Range::all(), cv::Range(0, img_rightin.cols / 2 + overlap));   // Left half with overlap
     cv::Mat img_rightin1 = img_rightin(cv::Range::all(), cv::Range(img_rightin.cols / 2 - overlap, img_rightin.cols));  // Right half with overlap
 
-   
+    En1 =  boost::posix_time::microsec_clock::local_time();
+    double image_split = (En1 - St1).total_microseconds() * 1e-3;
+    printf(RED "\n The time taken for breaking the images into two halves is %.3f ms.\n", image_split);
 
-    cv::Mat img_left0, img_right0, img_left1, img_right1;
-    cv::Mat img_left, img_right;
-
-    rtchStrt =  boost::posix_time::microsec_clock::local_time(); 
-
+    
+    St2 =  boost::posix_time::microsec_clock::local_time();
 #ifdef ILLIXR_INTEGRATION
     // Histogram equalize
     //printf(RED"Inside Histogram ILLIXIR integration");
@@ -174,9 +177,15 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     t_lhe1.join();
     t_rhe0.join();
     t_rhe1.join();
+    En2 =  boost::posix_time::microsec_clock::local_time();
 
+    double four_threads = (En2 - St2).total_microseconds() * 1e-3;
+    printf(RED "The time taken for creating the histogram using four threads is %.3f ms.\n", four_threads);
+ 
     //hconcat(img_left0, img_left1, img_left);  // Combine left halves
     //hconcat(img_right0, img_right1, img_right);
+
+    St3 =  boost::posix_time::microsec_clock::local_time(); 
     std::thread t_left([&](){
         cv::hconcat(img_left0,img_left1,img_left);
         });
@@ -190,9 +199,14 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     t_right.join();
 
     
+    En3 =  boost::posix_time::microsec_clock::local_time();
     rtchEnd =  boost::posix_time::microsec_clock::local_time();
-    double histogram_time_me = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
-    printf(RED "\n The time taken for histogram creation is %.3f ms.\n", histogram_time_me);
+
+    double concat = (En3 - St3).total_microseconds() * 1e-3;
+    printf(RED "The time taken for concatenation is %.3f ms.\n", concat);
+    
+    double histogram_time_me = (rtchStrt - rtchEnd).total_microseconds() * 1e-3;
+    printf(RED "The time taken for entire histogram with multi-threading is %.3f ms.\n", histogram_time_me);
 
     // Extract image pyramids (boost seems to require us to put all the arguments even if there are defaults....)
     std::vector<cv::Mat> imgpyr_left, imgpyr_right;
