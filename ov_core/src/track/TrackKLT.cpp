@@ -140,15 +140,22 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     
 
     int overlap = 10;  // overlap region to account for border effects
-    //cv::Mat img_left0, img_right0, img_left1, img_right1;
-    cv::Mat img_left, img_right;
+    // cv::Mat img_left0, img_right0, img_left1, img_right1;
+    // cv::Mat img_left, img_right;
 
     rtchStrt =  boost::posix_time::microsec_clock::local_time();
     St1 =  boost::posix_time::microsec_clock::local_time();
+    //Pre-allcating images for histogram.
+    cv::Mat img_left0(img_leftin0.rows, img_leftin0.cols, img_leftin0.type());
+    cv::Mat img_left1(img_leftin1.rows, img_leftin1.cols, img_leftin1.type());
+    cv::Mat img_right0(img_rightin0.rows, img_rightin0.cols, img_rightin0.type());
+    cv::Mat img_right1(img_rightin1.rows, img_rightin1.cols, img_rightin1.type());
+
+    //Pre-allocating images for concat
+    cv::Mat img_left = cv::Mat(img_leftin.rows, img_leftin.cols, img_leftin.type());
+    cv::Mat img_right = cv::Mat(img_rightin.rows, img_rightin.cols, img_rightin.type());
+
     //For image from left camera
-    img_left = cv::Mat(img_leftin.rows, img_leftin.cols, img_leftin.type());
-    img_right = cv::Mat(img_rightin.rows, img_rightin.cols, img_rightin.type());
-    
     cv::Mat img_leftin0 = img_leftin(cv::Range::all(), cv::Range(0, img_leftin.cols / 2 + overlap));   // Left half with overlap
     cv::Mat img_leftin1 = img_leftin(cv::Range::all(), cv::Range(img_leftin.cols / 2 - overlap, img_leftin.cols));  // Right half with overlap
     
@@ -158,7 +165,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     En1 =  boost::posix_time::microsec_clock::local_time();
     double image_split = (En1 - St1).total_microseconds() * 1e-3;
-    printf(RED "\n The time taken for breaking the images into two halves is %.3f ms.\n", image_split);
+    printf(RED "\n The time taken for pre-allocating and breaking the images into two halves is %.3f ms.\n", image_split);
 
     
     St2 =  boost::posix_time::microsec_clock::local_time();
@@ -212,8 +219,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     En3 =  boost::posix_time::microsec_clock::local_time();
     rtchEnd =  boost::posix_time::microsec_clock::local_time();
 
-    //double concat = (En3 - St3).total_microseconds() * 1e-3;
-    //printf(RED "The time taken for concatenation is %.3f ms.\n", concat);
+    double concat = (En3 - St3).total_microseconds() * 1e-3;
+    printf(RED "The time taken for concatenation is %.3f ms.\n", concat);
     
     double histogram_time_me = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
     printf(RED "The time taken for entire histogram is %.3f ms.\n", histogram_time_me);
