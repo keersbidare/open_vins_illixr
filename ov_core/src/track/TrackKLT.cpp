@@ -146,11 +146,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     rtchStrt =  boost::posix_time::microsec_clock::local_time();
     St1 =  boost::posix_time::microsec_clock::local_time();
     //Pre-allcating images for histogram.
-    cv::Mat img_left0(img_leftin0.rows, img_leftin0.cols, img_leftin0.type());
-    cv::Mat img_left1(img_leftin1.rows, img_leftin1.cols, img_leftin1.type());
-    cv::Mat img_right0(img_rightin0.rows, img_rightin0.cols, img_rightin0.type());
-    cv::Mat img_right1(img_rightin1.rows, img_rightin1.cols, img_rightin1.type());
-
+   
     //Pre-allocating images for concat
     cv::Mat img_left = cv::Mat(img_leftin.rows, img_leftin.cols, img_leftin.type());
     cv::Mat img_right = cv::Mat(img_rightin.rows, img_rightin.cols, img_rightin.type());
@@ -162,6 +158,11 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     //For image from right camera
     cv::Mat img_rightin0 = img_rightin(cv::Range::all(), cv::Range(0, img_rightin.cols / 2 + overlap));   // Left half with overlap
     cv::Mat img_rightin1 = img_rightin(cv::Range::all(), cv::Range(img_rightin.cols / 2 - overlap, img_rightin.cols));  // Right half with overlap
+    
+    cv::Mat img_left0(img_leftin0.rows, img_leftin0.cols, img_leftin0.type());
+    cv::Mat img_left1(img_leftin1.rows, img_leftin1.cols, img_leftin1.type());
+    cv::Mat img_right0(img_rightin0.rows, img_rightin0.cols, img_rightin0.type());
+    cv::Mat img_right1(img_rightin1.rows, img_rightin1.cols, img_rightin1.type());
 
     En1 =  boost::posix_time::microsec_clock::local_time();
     double image_split = (En1 - St1).total_microseconds() * 1e-3;
