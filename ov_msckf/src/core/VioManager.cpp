@@ -180,7 +180,7 @@ void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Ma
 
     // Feed our stereo trackers, if we are not doing binocular
     if(params.use_stereo) {
-        printf(RED "Measurement_stereo_doing in stereo");
+        //printf(RED "Measurement_stereo_doing in stereo");
         trackFEATS->feed_stereo(timestamp, img0, img1, cam_id0, cam_id1);
     } else {
             printf(RED "Measurement_stereo_doing in monocular");
