@@ -228,10 +228,10 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     St3 = boost::posix_time::microsec_clock::local_time();
 
     std::thread t_left([&](){
-        custom_concat(img_left0, img_left1, img_left, overlap);  
+        cv::hconcat(img_left0, img_left1, img_left, overlap);  
     });
     std::thread t_right([&](){
-        custom_concat(img_right0, img_right1, img_right, overlap);  
+        cv::hconcat(img_right0, img_right1, img_right, overlap);  
     });
 
     
@@ -262,6 +262,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     double concat = (En3 - St3).total_microseconds() * 1e-3;
     printf(RED "The time taken for concatenation is %.3f ms.\n", concat);    
+
     double two_threads = (En1 - St1).total_microseconds() * 1e-3;
     double histogram_time_me = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
     printf(RED "The time taken for entire histogram using four threads is %.3f ms and using two threads is %.3f ms.\n", histogram_time_me,two_threads);
