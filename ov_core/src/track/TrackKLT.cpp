@@ -23,32 +23,40 @@
 
 using namespace ov_core;
 
-void custom_concat(cv::Mat &img1, cv::Mat &img2, cv::Mat &output, int overlap) {
-    
-    CV_Assert(img1.rows == img2.rows);
-    int rows = img1.rows;
+void custom_concat(const cv::Mat& src1, const cv::Mat& src2, cv::Mat& dst, int overlap) {
+    // Ensure both images have the same number of rows
+    CV_Assert(src1.rows == src2.rows);
+    CV_Assert(src1.type() == src2.type());
 
-   
-    int width1 = img1.cols - overlap;
-    int width2 = img2.cols - overlap;
-    int overlap_region = overlap;
+    int rows = src1.rows;
+    int width1 = src1.cols - overlap;
+    int width2 = src2.cols - overlap;
 
-    
-    output = cv::Mat(rows, width1 + width2 + overlap_region, img1.type());
+    // Allocate the destination matrix
+    dst.create(rows, width1 + width2 + overlap, src1.type());
 
-   
-    img1(cv::Range::all(), cv::Range(0, width1)).copyTo(output(cv::Range::all(), cv::Range(0, width1)));
-    img2(cv::Range::all(), cv::Range(overlap_region, img2.cols)).copyTo(output(cv::Range::all(), cv::Range(width1 + overlap_region, output.cols)));
+    // Define ROIs for non-overlapping and overlapping regions
+    cv::Mat roi_dst = dst(cv::Range::all(), cv::Range(0, width1));
+    cv::Mat roi_src1 = src1(cv::Range::all(), cv::Range(0, width1));
+    src1.copyTo(roi_dst);
 
-    
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < overlap_region; j++) {
-            output.at<uchar>(i, width1 + j) = static_cast<uchar>(
-                (static_cast<int>(img1.at<uchar>(i, width1 + j)) + static_cast<int>(img2.at<uchar>(i, j))) / 2
-            );
-        }
-    }
+    roi_dst = dst(cv::Range::all(), cv::Range(width1 + overlap, dst.cols));
+    cv::Mat roi_src2 = src2(cv::Range(overlap, src2.cols));
+    src2.copyTo(roi_dst);
+
+    // Handle the overlapping region by averaging
+    cv::Mat overlap_dst = dst(cv::Range::all(), cv::Range(width1, width1 + overlap));
+    cv::Mat overlap_src1 = src1(cv::Range::all(), cv::Range(width1, src1.cols));
+    cv::Mat overlap_src2 = src2(cv::Range(0, overlap));
+
+    // Convert to float for accurate averaging
+    cv::Mat overlap_src1_f, overlap_src2_f, overlap_avg_f;
+    overlap_src1.convertTo(overlap_src1_f, CV_32F);
+    overlap_src2.convertTo(overlap_src2_f, CV_32F);
+    cv::addWeighted(overlap_src1_f, 0.5, overlap_src2_f, 0.5, 0.0, overlap_avg_f);
+    overlap_avg_f.convertTo(overlap_dst, src1.type());
 }
+
 
 void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
 
@@ -228,10 +236,10 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     St3 = boost::posix_time::microsec_clock::local_time();
 
     std::thread t_left([&](){
-        cv::hconcat(img_left0, img_left1, img_left);  
+        custom_concat(img_left0, img_left1, img_left, overlap);  
     });
     std::thread t_right([&](){
-        cv::hconcat(img_right0, img_right1, img_right);  
+        custom_concat(img_right0, img_right1, img_right, overlap);  
     });
 
     
