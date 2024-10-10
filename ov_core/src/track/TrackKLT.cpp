@@ -228,10 +228,10 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     St3 = boost::posix_time::microsec_clock::local_time();
 
     std::thread t_left([&](){
-        cv::hconcat(img_left0, img_left1, img_left, overlap);  
+        cv::hconcat(img_left0, img_left1, img_left);  
     });
     std::thread t_right([&](){
-        cv::hconcat(img_right0, img_right1, img_right, overlap);  
+        cv::hconcat(img_right0, img_right1, img_right);  
     });
 
     
