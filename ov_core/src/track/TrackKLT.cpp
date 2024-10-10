@@ -23,7 +23,7 @@
 
 using namespace ov_core;
 
-cv::Mat customConcatEfficient(const cv::Mat& src1, const cv::Mat& src2, int overlap) {
+cv::Mat custom_concat(const cv::Mat& src1, const cv::Mat& src2, int overlap) {
     // Define the resulting image with the proper size (excluding the overlap)
     int totalWidth = src1.cols + src2.cols - overlap;
     int height = std::max(src1.rows, src2.rows);
