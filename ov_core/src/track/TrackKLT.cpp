@@ -34,12 +34,20 @@ cv::Mat custom_concat(const cv::Mat& src1, const cv::Mat& src2, int overlap) {
     // Use submatrices to avoid copying data unnecessarily
     // Directly assign src1 into the result
     cv::Mat leftPart = result(cv::Rect(0, 0, src1.cols, src1.rows));
-    src1.copyTo(leftPart);  // This copy is unavoidable
-
-    // Handle the non-overlapping region of src2 by referencing it directly
     cv::Mat rightPart = result(cv::Rect(src1.cols, 0, src2.cols - overlap, src2.rows));
-    src2(cv::Rect(overlap, 0, src2.cols - overlap, src2.rows)).copyTo(rightPart);
-
+    std::thread t_left([&](){
+        src1.copyTo(leftPart);   
+    });
+    
+     std::thread t_right([&](){
+        src2(cv::Rect(overlap, 0, src2.cols - overlap, src2.rows)).copyTo(rightPart);
+  
+    });
+    
+   
+    t_left.join();
+    t_right.join();
+    
     return result;
 }
 
