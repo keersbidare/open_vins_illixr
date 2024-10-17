@@ -199,34 +199,37 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     //rtchStrt =  boost::posix_time::microsec_clock::local_time();
     St2 =  boost::posix_time::microsec_clock::local_time();
 #ifdef ILLIXR_INTEGRATION
-    //std::thread t_lhe = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin ), cv::_OutputArray(img_left ));
-    //std::thread t_rhe = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin), cv::_OutputArray(img_right));
-    //Histogram equalize
-    //printf(RED"Inside Histogram ILLIXIR integration");
+    
     std::thread t_lhe0 = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin0), cv::_OutputArray(img_left0));
     std::thread t_lhe1 = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin1), cv::_OutputArray(img_left1));
     std::thread t_rhe0 = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin0), cv::_OutputArray(img_right0));
     std::thread t_rhe1 = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin1), cv::_OutputArray(img_right1));
-#else /// ILLIXR_INTEGRATION
-    
-    //boost::thread t_lhe = boost::thread(cv::equalizeHist, boost::cref(img_leftin), boost::ref(img_left));
-    //boost::thread t_rhe = boost::thread(cv::equalizeHist, boost::cref(img_rightin), boost::ref(img_right));
+#else /// ILLIXR_INTEGRATION   
+    TS1 = boost::posix_time::microsec_clock::local_time();
     boost::thread t_lhe0 = boost::thread(cv::equalizeHist, boost::cref(img_leftin0), boost::ref(img_left0));
+    TS2 = boost::posix_time::microsec_clock::local_time();
     boost::thread t_lhe1 = boost::thread(cv::equalizeHist, boost::cref(img_leftin1), boost::ref(img_left1));
+    TS3 = boost::posix_time::microsec_clock::local_time();
     boost::thread t_rhe0 = boost::thread(cv::equalizeHist, boost::cref(img_rightin0), boost::ref(img_right0));
+    TS4 = boost::posix_time::microsec_clock::local_time();
     boost::thread t_rhe1 = boost::thread(cv::equalizeHist, boost::cref(img_rightin1), boost::ref(img_right1));
 #endif /// ILLIXR_INTEGRATION
     t_lhe0.join();
+    TE1 = boost::posix_time::microsec_clock::local_time();
     t_lhe1.join();
+    TE2 = boost::posix_time::microsec_clock::local_time();
     t_rhe0.join();
+    TE3 = boost::posix_time::microsec_clock::local_time();
     t_rhe1.join();
+    TE4 = boost::posix_time::microsec_clock::local_time();
 
-    //t_lhe.join();
-    //t_rhe.join();
+   
     En2 =  boost::posix_time::microsec_clock::local_time();
-
-    double four_threads = (En2 - St2).total_microseconds() * 1e-3;
-    printf(RED "The time taken for creating the histogram using four threads is %.3f ms.\n", four_threads);
+    double first_thread_me = (TE1 - TS1).total_microseconds() * 1e-3;
+    double second_thread_me = (TE2 - TS2).total_microseconds() * 1e-3;
+    double third_thread_me = (TE3 - TS3).total_microseconds() * 1e-3;
+    double fourth_thread_me = (TE4 - TS4).total_microseconds() * 1e-3;
+   
 
  // THIS IS CONCATENATION, DON'T NEED IT AS OF NOW
 //     St3 = boost::posix_time::microsec_clock::local_time();
@@ -256,19 +259,36 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     std::thread t_lhe = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin ), cv::_OutputArray(img_left2 ));
     std::thread t_rhe = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin), cv::_OutputArray(img_right2));
     //Histogram equalize
-#else /// ILLIXR_INTEGRATION    
+#else /// ILLIXR_INTEGRATION  
+    TS1 = boost::posix_time::microsec_clock::local_time();  
     boost::thread t_lhe = boost::thread(cv::equalizeHist, boost::cref(img_leftin), boost::ref(img_left));
+    TS2 = boost::posix_time::microsec_clock::local_time();
     boost::thread t_rhe = boost::thread(cv::equalizeHist, boost::cref(img_rightin), boost::ref(img_right));
 #endif /// ILLIXR_INTEGRATION
     t_lhe.join();
+    TE1 = boost::posix_time::microsec_clock::local_time();
     t_rhe.join();
+    TE2 = boost::posix_time::microsec_clock::local_time();
     En1 =  boost::posix_time::microsec_clock::local_time();
 
+    double first_thread = (TE1 - TS1).total_microseconds() * 1e-3;
+    double second_thread = (TE2 - TS2).total_microseconds() * 1e-3;
     // double concat = (En3 - St3).total_microseconds() * 1e-3;
     // printf(RED "The time taken for concatenation is %.3f ms.\n", concat);    
-
+    double four_threads = (En2 - St2).total_microseconds() * 1e-3;
     double two_threads = (En1 - St1).total_microseconds() * 1e-3;
+
+    printf(RED "\n---------------------FOUR THREADS------------------------------------");
+    printf(RED "The time taken for first thread is %.3f ms.\n", first_thread_me);
+    printf(RED "The time taken for second thread is %.3f ms.\n", second_thread_me);
+    printf(RED "The time taken for third thread is %.3f ms.\n", third_thread_me);
+    printf(RED "The time taken for fourth thread is %.3f ms.\n", fourth_thread_me);
+    printf(RED "The time taken for creating the histogram using four threads is %.3f ms.\n", four_threads);
+    
     // double histogram_time_me = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
+    printf(RED "\n---------------------TWO THREADS------------------------------------\n");
+    printf(RED "The time taken for first thread is %.3f ms.\n", first_thread);
+    printf(RED "The time taken for second thread is %.3f ms.\n", second_thread);
     printf(RED "The time taken for histogram using two threads is %.3f ms.\n",two_threads);
 
     // Extract image pyramids (boost seems to require us to put all the arguments even if there are defaults....)
