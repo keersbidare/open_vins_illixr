@@ -206,7 +206,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     t_rhe1.join();
     //TE5 = boost::posix_time::microsec_clock::local_time();
     t_rhe2.join();
-    T//E6 = boost::posix_time::microsec_clock::local_time();
+    //TE6 = boost::posix_time::microsec_clock::local_time();
    
     En2 =  boost::posix_time::microsec_clock::local_time();
     double first_thread_me = (TE1 - TS1).total_microseconds() * 1e-3;
