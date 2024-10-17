@@ -199,13 +199,13 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     TE1 = boost::posix_time::microsec_clock::local_time();
     t_lhe1.join();
     TE2 = boost::posix_time::microsec_clock::local_time();
-    t_rhe0.join();
-    TE3 = boost::posix_time::microsec_clock::local_time();
-    t_rhe1.join();
-    TE4 = boost::posix_time::microsec_clock::local_time();
     t_lhe2.join();
+    TE3 = boost::posix_time::microsec_clock::local_time();
+    t_rhe0.join();
+    TE4 = boost::posix_time::microsec_clock::local_time();
+    t_rhe1.join();
     TE5 = boost::posix_time::microsec_clock::local_time();
-    t_rhe3.join();
+    t_rhe2.join();
     TE6 = boost::posix_time::microsec_clock::local_time();
    
     En2 =  boost::posix_time::microsec_clock::local_time();
@@ -244,7 +244,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     double second_thread = (TE2 - TS2).total_microseconds() * 1e-3;
     // double concat = (En3 - St3).total_microseconds() * 1e-3;
     // printf(RED "The time taken for concatenation is %.3f ms.\n", concat);    
-    double four_threads = (En2 - St2).total_microseconds() * 1e-3;
+    double six_threads = (En2 - St2).total_microseconds() * 1e-3;
     double two_threads = (En1 - St1).total_microseconds() * 1e-3;
 
     printf(RED "\n---------------------FOUR THREADS------------------------------------\n");
@@ -254,7 +254,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     printf(RED "The time taken for fourth thread is %.3f ms.\n", fourth_thread_me);
     printf(RED "The time taken for fifth thread is %.3f ms.\n", fifth_thread_me);
     printf(RED "The time taken for sixth thread is %.3f ms.\n", sixth_thread_me);
-    printf(RED "The time taken for creating the histogram using four threads is %.3f ms.\n", four_threads);
+    printf(RED "The time taken for creating the histogram using six threads is %.3f ms.\n", four_threads);
     
     // double histogram_time_me = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
     printf(RED "\n---------------------TWO THREADS------------------------------------\n");
