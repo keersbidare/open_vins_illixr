@@ -182,39 +182,39 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     std::thread t_rhe1 = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin1), cv::_OutputArray(img_right1));
     std::thread t_rhe2 = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin2), cv::_OutputArray(img_right2));
 #else /// ILLIXR_INTEGRATION 
-    TS1 = boost::posix_time::microsec_clock::local_time();
+    //TS1 = boost::posix_time::microsec_clock::local_time();
     boost::thread t_lhe0 = boost::thread(cv::equalizeHist, cv::_InputArray(img_leftin0), cv::_OutputArray(img_left0));
-    TS2 = boost::posix_time::microsec_clock::local_time();
+    //TS2 = boost::posix_time::microsec_clock::local_time();
     boost::thread t_lhe1 = boost::thread(cv::equalizeHist, cv::_InputArray(img_leftin1), cv::_OutputArray(img_left1));
-    TS3 = boost::posix_time::microsec_clock::local_time();
+    //TS3 = boost::posix_time::microsec_clock::local_time();
     boost::thread t_lhe2 = boost::thread(cv::equalizeHist, cv::_InputArray(img_leftin2), cv::_OutputArray(img_left2));
-    TS4 = boost::posix_time::microsec_clock::local_time();
+    //TS4 = boost::posix_time::microsec_clock::local_time();
     boost::thread t_rhe0 = boost::thread(cv::equalizeHist, cv::_InputArray(img_rightin0), cv::_OutputArray(img_right0));
-    TS5 = boost::posix_time::microsec_clock::local_time();
+    //TS5 = boost::posix_time::microsec_clock::local_time();
     boost::thread t_rhe1 = boost::thread(cv::equalizeHist, cv::_InputArray(img_rightin1), cv::_OutputArray(img_right1));
-    TS6 = boost::posix_time::microsec_clock::local_time();
+    //TS6 = boost::posix_time::microsec_clock::local_time();
     boost::thread t_rhe2 = boost::thread(cv::equalizeHist, cv::_InputArray(img_rightin2), cv::_OutputArray(img_right2));
 #endif /// ILLIXR_INTEGRATION
     t_lhe0.join();
-    TE1 = boost::posix_time::microsec_clock::local_time();
+    //TE1 = boost::posix_time::microsec_clock::local_time();
     t_lhe1.join();
-    TE2 = boost::posix_time::microsec_clock::local_time();
+    //TE2 = boost::posix_time::microsec_clock::local_time();
     t_lhe2.join();
-    TE3 = boost::posix_time::microsec_clock::local_time();
+    //TE3 = boost::posix_time::microsec_clock::local_time();
     t_rhe0.join();
-    TE4 = boost::posix_time::microsec_clock::local_time();
+    //TE4 = boost::posix_time::microsec_clock::local_time();
     t_rhe1.join();
-    TE5 = boost::posix_time::microsec_clock::local_time();
+    //TE5 = boost::posix_time::microsec_clock::local_time();
     t_rhe2.join();
-    TE6 = boost::posix_time::microsec_clock::local_time();
+    T//E6 = boost::posix_time::microsec_clock::local_time();
    
     En2 =  boost::posix_time::microsec_clock::local_time();
     double first_thread_me = (TE1 - TS1).total_microseconds() * 1e-3;
     double second_thread_me = (TE2 - TS2).total_microseconds() * 1e-3;
     double third_thread_me = (TE3 - TS3).total_microseconds() * 1e-3;
     double fourth_thread_me = (TE4 - TS4).total_microseconds() * 1e-3;
-    double fifth_thread_me = (TE4 - TS4).total_microseconds() * 1e-3;   
-    double sixth_thread_me = (TE4 - TS4).total_microseconds() * 1e-3;
+    double fifth_thread_me = (TE5 - TS5).total_microseconds() * 1e-3;   
+    double sixth_thread_me = (TE6 - TS6).total_microseconds() * 1e-3;
    
    
 
@@ -229,15 +229,15 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     std::thread t_rhe = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin), cv::_OutputArray(img_right2));
     //Histogram equalize
 #else /// ILLIXR_INTEGRATION  
-    TS1 = boost::posix_time::microsec_clock::local_time();  
+    //TS1 = boost::posix_time::microsec_clock::local_time();  
     boost::thread t_lhe = boost::thread(cv::equalizeHist, boost::cref(img_leftin), boost::ref(img_left));
-    TS2 = boost::posix_time::microsec_clock::local_time();
+    //TS2 = boost::posix_time::microsec_clock::local_time();
     boost::thread t_rhe = boost::thread(cv::equalizeHist, boost::cref(img_rightin), boost::ref(img_right));
 #endif /// ILLIXR_INTEGRATION
     t_lhe.join();
-    TE1 = boost::posix_time::microsec_clock::local_time();
+    //TE1 = boost::posix_time::microsec_clock::local_time();
     t_rhe.join();
-    TE2 = boost::posix_time::microsec_clock::local_time();
+    //TE2 = boost::posix_time::microsec_clock::local_time();
     En1 =  boost::posix_time::microsec_clock::local_time();
 
     double first_thread = (TE1 - TS1).total_microseconds() * 1e-3;
@@ -247,19 +247,19 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     double six_threads = (En2 - St2).total_microseconds() * 1e-3;
     double two_threads = (En1 - St1).total_microseconds() * 1e-3;
 
-    printf(RED "\n---------------------FOUR THREADS------------------------------------\n");
-    printf(RED "The time taken for first thread is %.3f ms.\n", first_thread_me);
-    printf(RED "The time taken for second thread is %.3f ms.\n", second_thread_me);
-    printf(RED "The time taken for third thread is %.3f ms.\n", third_thread_me);
-    printf(RED "The time taken for fourth thread is %.3f ms.\n", fourth_thread_me);
-    printf(RED "The time taken for fifth thread is %.3f ms.\n", fifth_thread_me);
-    printf(RED "The time taken for sixth thread is %.3f ms.\n", sixth_thread_me);
+    printf(RED "\n---------------------SIX THREADS------------------------------------\n");
+    // printf(RED "The time taken for first thread is %.3f ms.\n", first_thread_me);
+    // printf(RED "The time taken for second thread is %.3f ms.\n", second_thread_me);
+    // printf(RED "The time taken for third thread is %.3f ms.\n", third_thread_me);
+    // printf(RED "The time taken for fourth thread is %.3f ms.\n", fourth_thread_me);
+    // printf(RED "The time taken for fifth thread is %.3f ms.\n", fifth_thread_me);
+    // printf(RED "The time taken for sixth thread is %.3f ms.\n", sixth_thread_me);
     printf(RED "The time taken for creating the histogram using six threads is %.3f ms.\n", six_threads);
     
     // double histogram_time_me = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
     printf(RED "\n---------------------TWO THREADS------------------------------------\n");
-    printf(RED "The time taken for first thread is %.3f ms.\n", first_thread);
-    printf(RED "The time taken for second thread is %.3f ms.\n", second_thread);
+    //printf(RED "The time taken for first thread is %.3f ms.\n", first_thread);
+    //printf(RED "The time taken for second thread is %.3f ms.\n", second_thread);
     printf(RED "The time taken for histogram using two threads is %.3f ms.\n",two_threads);
 
     // Extract image pyramids (boost seems to require us to put all the arguments even if there are defaults....)
