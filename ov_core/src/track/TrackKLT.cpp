@@ -144,7 +144,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     //cv::Mat img_left0, img_right0, img_left1, img_right1;
     // cv::Mat img_left, img_right;
 
-    
+    int overlap = 10;
     //Pre-allcating images for histogram.
     //Pre-allocating images for concat -- we don't need this as of now.
     cv::Mat img_left = cv::Mat(img_leftin.rows, img_leftin.cols, img_leftin.type());
@@ -254,7 +254,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     printf(RED "The time taken for fourth thread is %.3f ms.\n", fourth_thread_me);
     printf(RED "The time taken for fifth thread is %.3f ms.\n", fifth_thread_me);
     printf(RED "The time taken for sixth thread is %.3f ms.\n", sixth_thread_me);
-    printf(RED "The time taken for creating the histogram using six threads is %.3f ms.\n", four_threads);
+    printf(RED "The time taken for creating the histogram using six threads is %.3f ms.\n", six_threads);
     
     // double histogram_time_me = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
     printf(RED "\n---------------------TWO THREADS------------------------------------\n");
