@@ -278,7 +278,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     double four_threads = (En2 - St2).total_microseconds() * 1e-3;
     double two_threads = (En1 - St1).total_microseconds() * 1e-3;
 
-    printf(RED "\n---------------------FOUR THREADS------------------------------------");
+    printf(RED "\n---------------------FOUR THREADS------------------------------------\n");
     printf(RED "The time taken for first thread is %.3f ms.\n", first_thread_me);
     printf(RED "The time taken for second thread is %.3f ms.\n", second_thread_me);
     printf(RED "The time taken for third thread is %.3f ms.\n", third_thread_me);
