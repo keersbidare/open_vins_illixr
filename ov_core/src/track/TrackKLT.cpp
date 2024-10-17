@@ -23,34 +23,6 @@
 
 using namespace ov_core;
 
-cv::Mat custom_concat(const cv::Mat& src1, const cv::Mat& src2, int overlap) {
-    // Define the resulting image with the proper size (excluding the overlap)
-    int totalWidth = src1.cols + src2.cols - overlap;
-    int height = std::max(src1.rows, src2.rows);
-    
-    // Initialize the resulting matrix, but don't pre-fill it
-    cv::Mat result(cv::Size(totalWidth, height), src1.type(), cv::Scalar(0));
-
-    // Use submatrices to avoid copying data unnecessarily
-    // Directly assign src1 into the result
-    cv::Mat leftPart = result(cv::Rect(0, 0, src1.cols, src1.rows));
-    cv::Mat rightPart = result(cv::Rect(src1.cols, 0, src2.cols - overlap, src2.rows));
-    std::thread t_left([&](){
-        src1.copyTo(leftPart);   
-    });
-    
-     std::thread t_right([&](){
-        src2(cv::Rect(overlap, 0, src2.cols - overlap, src2.rows)).copyTo(rightPart);
-  
-    });
-    
-   
-    t_left.join();
-    t_right.join();
-    
-    return result;
-}
-
 
 
 void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
@@ -168,30 +140,34 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     //Dividing image left_in.
     
 
-    int overlap = 10;  // overlap region to account for border effects
-    // cv::Mat img_left0, img_right0, img_left1, img_right1;
+    
+    //cv::Mat img_left0, img_right0, img_left1, img_right1;
     // cv::Mat img_left, img_right;
 
     
     //Pre-allcating images for histogram.
-   
     //Pre-allocating images for concat -- we don't need this as of now.
     cv::Mat img_left = cv::Mat(img_leftin.rows, img_leftin.cols, img_leftin.type());
     cv::Mat img_right = cv::Mat(img_rightin.rows, img_rightin.cols, img_rightin.type());
 
-    //For image from left camera
-    cv::Mat img_leftin0 = img_leftin(cv::Range::all(), cv::Range(0, img_leftin.cols / 2 + overlap));   // Left half with overlap
-    cv::Mat img_leftin1 = img_leftin(cv::Range::all(), cv::Range(img_leftin.cols / 2 - overlap, img_leftin.cols));  // Right half with overlap
-    
-    //For image from right camera
-    cv::Mat img_rightin0 = img_rightin(cv::Range::all(), cv::Range(0, img_rightin.cols / 2 + overlap));   // Left half with overlap
-    cv::Mat img_rightin1 = img_rightin(cv::Range::all(), cv::Range(img_rightin.cols / 2 - overlap, img_rightin.cols));  // Right half with overlap
-    
+    int part_width = img_leftin.cols / 3;
+    cv::Mat img_leftin0 = img_leftin(cv::Range::all(), cv::Range(0, part_width + overlap));
+    cv::Mat img_leftin1 = img_leftin(cv::Range::all(), cv::Range(part_width - overlap, 2 * part_width + overlap));
+    cv::Mat img_leftin2 = img_leftin(cv::Range::all(), cv::Range(2 * part_width - overlap, img_leftin.cols));
+
+    cv::Mat img_rightin0 = img_rightin(cv::Range::all(), cv::Range(0, part_width + overlap));
+    cv::Mat img_rightin1 = img_rightin(cv::Range::all(), cv::Range(part_width - overlap, 2 * part_width + overlap));
+    cv::Mat img_rightin2 = img_rightin(cv::Range::all(), cv::Range(2 * part_width - overlap, img_rightin.cols));
+
+    // Divide img_leftin and img_rightin into three parts
     cv::Mat img_left0(img_leftin0.rows, img_leftin0.cols, img_leftin0.type());
     cv::Mat img_left1(img_leftin1.rows, img_leftin1.cols, img_leftin1.type());
+    cv::Mat img_left2(img_leftin2.rows, img_leftin2.cols, img_leftin2.type());
     cv::Mat img_right0(img_rightin0.rows, img_rightin0.cols, img_rightin0.type());
     cv::Mat img_right1(img_rightin1.rows, img_rightin1.cols, img_rightin1.type());
+    cv::Mat img_right2(img_rightin2.rows, img_rightin2.cols, img_rightin2.type());
 
+    
     //En1 =  boost::posix_time::microsec_clock::local_time();
     //double image_split = (En1 - St1).total_microseconds() * 1e-3;
     //printf(RED "\n The time taken for pre-allocating and breaking the images into two halves is %.3f ms.\n", image_split);
@@ -199,20 +175,25 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     //rtchStrt =  boost::posix_time::microsec_clock::local_time();
     St2 =  boost::posix_time::microsec_clock::local_time();
 #ifdef ILLIXR_INTEGRATION
-    
     std::thread t_lhe0 = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin0), cv::_OutputArray(img_left0));
     std::thread t_lhe1 = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin1), cv::_OutputArray(img_left1));
+    std::thread t_lhe2 = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin2), cv::_OutputArray(img_left2));
     std::thread t_rhe0 = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin0), cv::_OutputArray(img_right0));
     std::thread t_rhe1 = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin1), cv::_OutputArray(img_right1));
-#else /// ILLIXR_INTEGRATION   
+    std::thread t_rhe2 = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin2), cv::_OutputArray(img_right2));
+#else /// ILLIXR_INTEGRATION 
     TS1 = boost::posix_time::microsec_clock::local_time();
-    boost::thread t_lhe0 = boost::thread(cv::equalizeHist, boost::cref(img_leftin0), boost::ref(img_left0));
+    boost::thread t_lhe0 = boost::thread(cv::equalizeHist, cv::_InputArray(img_leftin0), cv::_OutputArray(img_left0));
     TS2 = boost::posix_time::microsec_clock::local_time();
-    boost::thread t_lhe1 = boost::thread(cv::equalizeHist, boost::cref(img_leftin1), boost::ref(img_left1));
+    boost::thread t_lhe1 = boost::thread(cv::equalizeHist, cv::_InputArray(img_leftin1), cv::_OutputArray(img_left1));
     TS3 = boost::posix_time::microsec_clock::local_time();
-    boost::thread t_rhe0 = boost::thread(cv::equalizeHist, boost::cref(img_rightin0), boost::ref(img_right0));
+    boost::thread t_lhe2 = boost::thread(cv::equalizeHist, cv::_InputArray(img_leftin2), cv::_OutputArray(img_left2));
     TS4 = boost::posix_time::microsec_clock::local_time();
-    boost::thread t_rhe1 = boost::thread(cv::equalizeHist, boost::cref(img_rightin1), boost::ref(img_right1));
+    boost::thread t_rhe0 = boost::thread(cv::equalizeHist, cv::_InputArray(img_rightin0), cv::_OutputArray(img_right0));
+    TS5 = boost::posix_time::microsec_clock::local_time();
+    boost::thread t_rhe1 = boost::thread(cv::equalizeHist, cv::_InputArray(img_rightin1), cv::_OutputArray(img_right1));
+    TS6 = boost::posix_time::microsec_clock::local_time();
+    boost::thread t_rhe2 = boost::thread(cv::equalizeHist, cv::_InputArray(img_rightin2), cv::_OutputArray(img_right2));
 #endif /// ILLIXR_INTEGRATION
     t_lhe0.join();
     TE1 = boost::posix_time::microsec_clock::local_time();
@@ -222,33 +203,21 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     TE3 = boost::posix_time::microsec_clock::local_time();
     t_rhe1.join();
     TE4 = boost::posix_time::microsec_clock::local_time();
-
+    t_lhe2.join();
+    TE5 = boost::posix_time::microsec_clock::local_time();
+    t_rhe3.join();
+    TE6 = boost::posix_time::microsec_clock::local_time();
    
     En2 =  boost::posix_time::microsec_clock::local_time();
     double first_thread_me = (TE1 - TS1).total_microseconds() * 1e-3;
     double second_thread_me = (TE2 - TS2).total_microseconds() * 1e-3;
     double third_thread_me = (TE3 - TS3).total_microseconds() * 1e-3;
     double fourth_thread_me = (TE4 - TS4).total_microseconds() * 1e-3;
+    double fifth_thread_me = (TE4 - TS4).total_microseconds() * 1e-3;   
+    double sixth_thread_me = (TE4 - TS4).total_microseconds() * 1e-3;
+   
    
 
- // THIS IS CONCATENATION, DON'T NEED IT AS OF NOW
-//     St3 = boost::posix_time::microsec_clock::local_time();
-
-//    std::thread t_left([&](){
-//         img_left = custom_concat(img_left0, img_left1, overlap);  
-//     });
-//     std::thread t_right([&](){
-//         img_right = custom_concat(img_right0, img_right1, overlap);  
-//     });
-    
-//     // Wait for both threads to finish
-//     t_left.join();
-//     t_right.join();
-
-    
-//     En3 =  boost::posix_time::microsec_clock::local_time();
-// THIS IS CONCATENATION, DON'T NEED IT AS OF NOW
-    //rtchEnd =  boost::posix_time::microsec_clock::local_time();
     
 
     // cv::Mat img_left2 = cv::Mat(img_leftin.rows, img_leftin.cols, img_leftin.type());
@@ -283,6 +252,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     printf(RED "The time taken for second thread is %.3f ms.\n", second_thread_me);
     printf(RED "The time taken for third thread is %.3f ms.\n", third_thread_me);
     printf(RED "The time taken for fourth thread is %.3f ms.\n", fourth_thread_me);
+    printf(RED "The time taken for fifth thread is %.3f ms.\n", fifth_thread_me);
+    printf(RED "The time taken for sixth thread is %.3f ms.\n", sixth_thread_me);
     printf(RED "The time taken for creating the histogram using four threads is %.3f ms.\n", four_threads);
     
     // double histogram_time_me = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
