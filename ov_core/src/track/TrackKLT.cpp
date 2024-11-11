@@ -198,17 +198,17 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
                                     cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
     #else
     boost::thread t_lp0 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left0),
-                                        boost::ref(imgpyr_left_part0), boost::ref(win_size), boost::ref(pyr_levels), false,
+                                        boost::ref(imgpyr_left0), boost::ref(win_size), boost::ref(pyr_levels), false,
                                         cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
     boost::thread t_lp1 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left1),
-                                        boost::ref(imgpyr_left_part1), boost::ref(win_size), boost::ref(pyr_levels), false,
+                                        boost::ref(imgpyr_left1), boost::ref(win_size), boost::ref(pyr_levels), false,
                                         cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
 
     boost::thread t_rp0 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_right0),
-                                        boost::ref(imgpyr_right_part0), boost::ref(win_size), boost::ref(pyr_levels), false,
+                                        boost::ref(imgpyr_right0), boost::ref(win_size), boost::ref(pyr_levels), false,
                                         cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
     boost::thread t_rp1 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_right1),
-                                        boost::ref(imgpyr_right_part1), boost::ref(win_size), boost::ref(pyr_levels), false,
+                                        boost::ref(imgpyr_right1), boost::ref(win_size), boost::ref(pyr_levels), false,
                                         cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
     #endif
 
@@ -221,8 +221,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     rtchEnd =  boost::posix_time::microsec_clock::local_time();
 
-    SplitImageView imgpyr_left_class(imgpyr_left_part0, imgpyr_left_part1);
-    SplitImageView imgpyr_right_class(imgpyr_right_part0, imgpyr_right_part1);
+    SplitImageView imgpyr_left_class(imgpyr_left0, imgpyr_left1);
+    SplitImageView imgpyr_right_class(imgpyr_right0, imgpyr_right1);
 
 
     double pyramid_time_me = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
