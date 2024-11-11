@@ -177,7 +177,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     SplitImageView img_right_class(img_right0, img_right1);
 
 
-    //std::vector<cv::Mat> imgpyr_left, imgpyr_right;
+    std::vector<cv::Mat> imgpyr_left0,imgpyr_left1, imgpyr_right0,imgpyr_right1;
 
     rtchStrt =  boost::posix_time::microsec_clock::local_time();
 
