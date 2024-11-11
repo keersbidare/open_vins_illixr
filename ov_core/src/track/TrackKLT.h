@@ -26,9 +26,8 @@
 
 
 namespace ov_core {
-
-
-    class SplitImageView {
+    
+class SplitImageView {
         public:
             SplitImageView(const cv::Mat& left_part, const cv::Mat& right_part): left(left_part), right(right_part) {
                 if (left.rows != right.rows) {

@@ -24,7 +24,6 @@
 using namespace ov_core;
 
 
-
 void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
 
     // Start timing
@@ -176,54 +175,41 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     SplitImageView img_left_class(img_left0, img_left1);
     SplitImageView img_right_class(img_right0, img_right1);
 
+    cv::Mat img_left = img_left_class.getUnifiedView();
+    cv::Mat img_right = img_left_class.getUnifiedView();
 
-    std::vector<cv::Mat> imgpyr_left0,imgpyr_left1, imgpyr_right0,imgpyr_right1;
+    std::vector<cv::Mat> imgpyr_left,imgpyr_right;
 
     rtchStrt =  boost::posix_time::microsec_clock::local_time();
 
     #ifdef ILLIXR_INTEGRATION
     // Run buildOpticalFlowPyramid on each part of img_left and img_right in separate threads
-    std::thread t_lp0 = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_left0),
-                                    cv::_OutputArray(imgpyr_left_part0), win_size, pyr_levels, false,
+    std::thread t_l = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_left),
+                                    cv::_OutputArray(imgpyr_left), win_size, pyr_levels, false,
                                     cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-    std::thread t_lp1 = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_left1),
-                                    cv::_OutputArray(imgpyr_left_part1), win_size, pyr_levels, false,
-                                    cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-
-    std::thread t_rp0 = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_right_part0),
-                                    cv::_OutputArray(imgpyr_right_part0), win_size, pyr_levels, false,
-                                    cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-    std::thread t_rp1 = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_right_part1),
-                                    cv::_OutputArray(imgpyr_right_part1), win_size, pyr_levels, false,
+    
+    std::thread t_r = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_right),
+                                    cv::_OutputArray(imgpyr_right), win_size, pyr_levels, false,
                                     cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
     #else
-    boost::thread t_lp0 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left0),
-                                        boost::ref(imgpyr_left0), boost::ref(win_size), boost::ref(pyr_levels), false,
+    boost::thread t_l = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left),
+                                        boost::ref(imgpyr_left), boost::ref(win_size), boost::ref(pyr_levels), false,
                                         cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-    boost::thread t_lp1 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left1),
-                                        boost::ref(imgpyr_left1), boost::ref(win_size), boost::ref(pyr_levels), false,
-                                        cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-
-    boost::thread t_rp0 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_right0),
-                                        boost::ref(imgpyr_right0), boost::ref(win_size), boost::ref(pyr_levels), false,
-                                        cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-    boost::thread t_rp1 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_right1),
-                                        boost::ref(imgpyr_right1), boost::ref(win_size), boost::ref(pyr_levels), false,
+   
+    boost::thread t_r = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_right),
+                                        boost::ref(imgpyr_right), boost::ref(win_size), boost::ref(pyr_levels), false,
                                         cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
     #endif
 
     // Join all threads
-    t_lp0.join();
-    t_lp1.join();
-    t_rp0.join();
-    t_rp1.join();
+    
+    t_l.join();   
+    t_r.join();
 
 
     rtchEnd =  boost::posix_time::microsec_clock::local_time();
 
-    SplitImageView imgpyr_left_class(imgpyr_left0, imgpyr_left1);
-    SplitImageView imgpyr_right_class(imgpyr_right0, imgpyr_right1);
-
+   
 
     double pyramid_time_me = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
     printf(RED "\n The time taken for buildOpticalFlowPyramid creation is %.3f ms.\n", pyramid_time_me);
@@ -234,8 +220,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     std::unique_lock<std::mutex> lck1(mtx_feeds.at(cam_id_left));
     std::unique_lock<std::mutex> lck2(mtx_feeds.at(cam_id_right));
     
-    cv::Mat imgpyr_left = imgpyr_left_class.getUnifiedView();
-    cv::Mat imgpyr_right = imgpyr_right_class.getUnifiedView();
+   
 
     // cv::Mat img_left = img_left_class.getClonedView();
     // cv::Mat img_right = img_right_class.getClonedView();
