@@ -183,10 +183,10 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     #ifdef ILLIXR_INTEGRATION
     // Run buildOpticalFlowPyramid on each part of img_left and img_right in separate threads
-    std::thread t_lp0 = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_left_part0),
+    std::thread t_lp0 = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_left0),
                                     cv::_OutputArray(imgpyr_left_part0), win_size, pyr_levels, false,
                                     cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-    std::thread t_lp1 = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_left_part1),
+    std::thread t_lp1 = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_left1),
                                     cv::_OutputArray(imgpyr_left_part1), win_size, pyr_levels, false,
                                     cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
 
@@ -197,17 +197,17 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
                                     cv::_OutputArray(imgpyr_right_part1), win_size, pyr_levels, false,
                                     cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
     #else
-    boost::thread t_lp0 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left_part0),
+    boost::thread t_lp0 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left0),
                                         boost::ref(imgpyr_left_part0), boost::ref(win_size), boost::ref(pyr_levels), false,
                                         cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-    boost::thread t_lp1 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left_part1),
+    boost::thread t_lp1 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left1),
                                         boost::ref(imgpyr_left_part1), boost::ref(win_size), boost::ref(pyr_levels), false,
                                         cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
 
-    boost::thread t_rp0 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_right_part0),
+    boost::thread t_rp0 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_right0),
                                         boost::ref(imgpyr_right_part0), boost::ref(win_size), boost::ref(pyr_levels), false,
                                         cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-    boost::thread t_rp1 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_right_part1),
+    boost::thread t_rp1 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_right1),
                                         boost::ref(imgpyr_right_part1), boost::ref(win_size), boost::ref(pyr_levels), false,
                                         cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
     #endif
