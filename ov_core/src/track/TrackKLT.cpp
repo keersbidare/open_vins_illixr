@@ -139,8 +139,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     int overlap = 10;
     
-    cv::Mat img_left = cv::Mat(img_leftin.rows, img_leftin.cols, img_leftin.type());
-    cv::Mat img_right = cv::Mat(img_rightin.rows, img_rightin.cols, img_rightin.type());
+    //cv::Mat img_left = cv::Mat(img_leftin.rows, img_leftin.cols, img_leftin.type());
+    //cv::Mat img_right = cv::Mat(img_rightin.rows, img_rightin.cols, img_rightin.type());
 
     int part_width = img_leftin.cols / 2;
     cv::Mat img_leftin0 = img_leftin(cv::Range::all(), cv::Range(0, part_width + overlap));
@@ -173,8 +173,11 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     En2 =  boost::posix_time::microsec_clock::local_time();
     
+    SplitImageView img_left_class(img_left0, img_left1);
+    SplitImageView img_right_class(img_right0, img_right1);
 
-    std::vector<cv::Mat> imgpyr_left, imgpyr_right;
+
+    //std::vector<cv::Mat> imgpyr_left, imgpyr_right;
 
     rtchStrt =  boost::posix_time::microsec_clock::local_time();
 
@@ -217,6 +220,11 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
 
     rtchEnd =  boost::posix_time::microsec_clock::local_time();
+
+    SplitImageView imgpyr_left_class(imgpyr_left_part0, imgpyr_left_part1);
+    SplitImageView imgpyr_right_class(imgpyr_right_part0, imgpyr_right_part1);
+
+
     double pyramid_time_me = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
     printf(RED "\n The time taken for buildOpticalFlowPyramid creation is %.3f ms.\n", pyramid_time_me);
     
@@ -226,16 +234,22 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     std::unique_lock<std::mutex> lck1(mtx_feeds.at(cam_id_left));
     std::unique_lock<std::mutex> lck2(mtx_feeds.at(cam_id_right));
     
+    cv::Mat imgpyr_left = imgpyr_left_class.getUnifiedView();
+    cv::Mat imgpyr_right = imgpyr_right_class.getUnifiedView();
+
+    // cv::Mat img_left = img_left_class.getClonedView();
+    // cv::Mat img_right = img_right_class.getClonedView();
     // If we didn't have any successful tracks last time, just extract this time
     // This also handles, the tracking initalization on the first call to this extractor
     if(pts_last[cam_id_left].empty() || pts_last[cam_id_right].empty()) {
         // Track into the new image
         perform_detection_stereo(imgpyr_left, imgpyr_right, pts_last[cam_id_left], pts_last[cam_id_right], ids_last[cam_id_left], ids_last[cam_id_right]);
         // Save the current image and pyramid
-        img_last[cam_id_left] = img_left.clone();
-        img_last[cam_id_right] = img_right.clone();
+        img_last[cam_id_left] = img_left_class.getClonedView();
+        img_last[cam_id_right] = img_right_class.getClonedView();
         img_pyramid_last[cam_id_left] = imgpyr_left;
         img_pyramid_last[cam_id_right] = imgpyr_right;
+
         return;
     }
 
@@ -292,8 +306,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     // If any of our masks are empty, that means we didn't have enough to do ransac, so just return
     if(mask_ll.empty() || mask_rr.empty()) {
-        img_last[cam_id_left] = img_left.clone();
-        img_last[cam_id_right] = img_right.clone();
+        img_last[cam_id_left] = img_left_class.getClonedView();
+        img_last[cam_id_right] = img_right_class.getClonedView();
         img_pyramid_last[cam_id_left] = imgpyr_left;
         img_pyramid_last[cam_id_right] = imgpyr_right;
         pts_last[cam_id_left].clear();
@@ -374,8 +388,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     }
 
     // Move forward in time
-    img_last[cam_id_left] = img_left.clone();
-    img_last[cam_id_right] = img_right.clone();
+    img_last[cam_id_left] = img_left_class.getClonedView();
+    img_last[cam_id_right] = img_right_class.getClonedView();
     img_pyramid_last[cam_id_left] = imgpyr_left;
     img_pyramid_last[cam_id_right] = imgpyr_right;
     pts_last[cam_id_left] = good_left;

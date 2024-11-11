@@ -28,6 +28,36 @@
 namespace ov_core {
 
 
+    class SplitImageView {
+        public:
+            SplitImageView(const cv::Mat& left_part, const cv::Mat& right_part): left(left_part), right(right_part) {
+                if (left.rows != right.rows) {
+                    throw std::invalid_argument("Left and right parts must have the same height.");
+                    }
+            }
+
+            cv::Mat getUnifiedView() const {
+                cv::Mat combined(left.rows, left.cols + right.cols, left.type());
+        
+                combined(cv::Rect(0, 0, left.cols, left.rows)) = left;
+                combined(cv::Rect(left.cols, 0, right.cols, right.rows)) = right;
+
+                return combined; // Returns a matrix referencing both parts
+            }
+
+            cv::Mat getClonedView() const {
+                cv::Mat combined = getUnifiedView().clone();
+                return combined;
+            }
+
+            cv::Mat cloneLeft() const { return left.clone(); }
+            cv::Mat cloneRight() const { return right.clone(); }
+
+        private:
+            const cv::Mat& left;
+            const cv::Mat& right;
+    };
+
     /**
      * @brief KLT tracking of features.
      *
