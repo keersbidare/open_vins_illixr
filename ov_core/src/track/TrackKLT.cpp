@@ -136,156 +136,85 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
-    //Divide img_leftin and img_rightin into two parts
-    //Dividing image left_in.
-    
-
-    
-    //cv::Mat img_left0, img_right0, img_left1, img_right1;
-    // cv::Mat img_left, img_right;
 
     int overlap = 10;
-    //Pre-allcating images for histogram.
-    //Pre-allocating images for concat -- we don't need this as of now.
+    
     cv::Mat img_left = cv::Mat(img_leftin.rows, img_leftin.cols, img_leftin.type());
     cv::Mat img_right = cv::Mat(img_rightin.rows, img_rightin.cols, img_rightin.type());
 
-    int part_width = img_leftin.cols / 3;
+    int part_width = img_leftin.cols / 2;
     cv::Mat img_leftin0 = img_leftin(cv::Range::all(), cv::Range(0, part_width + overlap));
-    cv::Mat img_leftin1 = img_leftin(cv::Range::all(), cv::Range(part_width - overlap, 2 * part_width + overlap));
-    cv::Mat img_leftin2 = img_leftin(cv::Range::all(), cv::Range(2 * part_width - overlap, img_leftin.cols));
+    cv::Mat img_leftin1 = img_leftin(cv::Range::all(), cv::Range(part_width - overlap, img_leftin.cols));
 
     cv::Mat img_rightin0 = img_rightin(cv::Range::all(), cv::Range(0, part_width + overlap));
-    cv::Mat img_rightin1 = img_rightin(cv::Range::all(), cv::Range(part_width - overlap, 2 * part_width + overlap));
-    cv::Mat img_rightin2 = img_rightin(cv::Range::all(), cv::Range(2 * part_width - overlap, img_rightin.cols));
+    cv::Mat img_rightin1 = img_rightin(cv::Range::all(), cv::Range(part_width - overlap, img_rightin.cols));
 
-    // Divide img_leftin and img_rightin into three parts
     cv::Mat img_left0(img_leftin0.rows, img_leftin0.cols, img_leftin0.type());
     cv::Mat img_left1(img_leftin1.rows, img_leftin1.cols, img_leftin1.type());
-    cv::Mat img_left2(img_leftin2.rows, img_leftin2.cols, img_leftin2.type());
     cv::Mat img_right0(img_rightin0.rows, img_rightin0.cols, img_rightin0.type());
     cv::Mat img_right1(img_rightin1.rows, img_rightin1.cols, img_rightin1.type());
-    cv::Mat img_right2(img_rightin2.rows, img_rightin2.cols, img_rightin2.type());
-
     
-    //En1 =  boost::posix_time::microsec_clock::local_time();
-    //double image_split = (En1 - St1).total_microseconds() * 1e-3;
-    //printf(RED "\n The time taken for pre-allocating and breaking the images into two halves is %.3f ms.\n", image_split);
-
-    //rtchStrt =  boost::posix_time::microsec_clock::local_time();
     St2 =  boost::posix_time::microsec_clock::local_time();
-#ifdef ILLIXR_INTEGRATION
-    std::thread t_lhe0 = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin0), cv::_OutputArray(img_left0));
-    std::thread t_lhe1 = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin1), cv::_OutputArray(img_left1));
-    std::thread t_lhe2 = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin2), cv::_OutputArray(img_left2));
-    std::thread t_rhe0 = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin0), cv::_OutputArray(img_right0));
-    std::thread t_rhe1 = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin1), cv::_OutputArray(img_right1));
-    std::thread t_rhe2 = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin2), cv::_OutputArray(img_right2));
-#else /// ILLIXR_INTEGRATION 
-    //TS1 = boost::posix_time::microsec_clock::local_time();
-    boost::thread t_lhe0 = boost::thread(cv::equalizeHist, cv::_InputArray(img_leftin0), cv::_OutputArray(img_left0));
-    //TS2 = boost::posix_time::microsec_clock::local_time();
-    boost::thread t_lhe1 = boost::thread(cv::equalizeHist, cv::_InputArray(img_leftin1), cv::_OutputArray(img_left1));
-    //TS3 = boost::posix_time::microsec_clock::local_time();
-    boost::thread t_lhe2 = boost::thread(cv::equalizeHist, cv::_InputArray(img_leftin2), cv::_OutputArray(img_left2));
-    //TS4 = boost::posix_time::microsec_clock::local_time();
-    boost::thread t_rhe0 = boost::thread(cv::equalizeHist, cv::_InputArray(img_rightin0), cv::_OutputArray(img_right0));
-    //TS5 = boost::posix_time::microsec_clock::local_time();
-    boost::thread t_rhe1 = boost::thread(cv::equalizeHist, cv::_InputArray(img_rightin1), cv::_OutputArray(img_right1));
-    //TS6 = boost::posix_time::microsec_clock::local_time();
-    boost::thread t_rhe2 = boost::thread(cv::equalizeHist, cv::_InputArray(img_rightin2), cv::_OutputArray(img_right2));
-#endif /// ILLIXR_INTEGRATION
-    t_lhe0.join();
-    //TE1 = boost::posix_time::microsec_clock::local_time();
-    t_lhe1.join();
-    //TE2 = boost::posix_time::microsec_clock::local_time();
-    t_lhe2.join();
-    //TE3 = boost::posix_time::microsec_clock::local_time();
-    t_rhe0.join();
-    //TE4 = boost::posix_time::microsec_clock::local_time();
-    t_rhe1.join();
-    //TE5 = boost::posix_time::microsec_clock::local_time();
-    t_rhe2.join();
-    //TE6 = boost::posix_time::microsec_clock::local_time();
-   
+    #ifdef ILLIXR_INTEGRATION
+        std::thread t_lhe0 = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin0), cv::_OutputArray(img_left0));
+        std::thread t_lhe1 = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin1), cv::_OutputArray(img_left1));
+        std::thread t_rhe0 = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin0), cv::_OutputArray(img_right0));
+        std::thread t_rhe1 = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin1), cv::_OutputArray(img_right1));
+    #else /// ILLIXR_INTEGRATION 
+        boost::thread t_lhe0 = boost::thread(cv::equalizeHist, cv::_InputArray(img_leftin0), cv::_OutputArray(img_left0));
+        boost::thread t_lhe1 = boost::thread(cv::equalizeHist, cv::_InputArray(img_leftin1), cv::_OutputArray(img_left1));
+        boost::thread t_rhe0 = boost::thread(cv::equalizeHist, cv::_InputArray(img_rightin0), cv::_OutputArray(img_right0));
+        boost::thread t_rhe1 = boost::thread(cv::equalizeHist, cv::_InputArray(img_rightin1), cv::_OutputArray(img_right1));
+    #endif /// ILLIXR_INTEGRATION
+        t_lhe0.join();
+        t_lhe1.join();
+        t_rhe0.join();
+        t_rhe1.join();
+
     En2 =  boost::posix_time::microsec_clock::local_time();
-    double first_thread_me = (TE1 - TS1).total_microseconds() * 1e-3;
-    double second_thread_me = (TE2 - TS2).total_microseconds() * 1e-3;
-    double third_thread_me = (TE3 - TS3).total_microseconds() * 1e-3;
-    double fourth_thread_me = (TE4 - TS4).total_microseconds() * 1e-3;
-    double fifth_thread_me = (TE5 - TS5).total_microseconds() * 1e-3;   
-    double sixth_thread_me = (TE6 - TS6).total_microseconds() * 1e-3;
-   
-   
-
     
 
-    // cv::Mat img_left2 = cv::Mat(img_leftin.rows, img_leftin.cols, img_leftin.type());
-    // cv::Mat img_right2 = cv::Mat(img_rightin.rows, img_rightin.cols, img_rightin.type());
-
-    St1 =  boost::posix_time::microsec_clock::local_time();
-#ifdef ILLIXR_INTEGRATION
-    std::thread t_lhe = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin ), cv::_OutputArray(img_left2 ));
-    std::thread t_rhe = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin), cv::_OutputArray(img_right2));
-    //Histogram equalize
-#else /// ILLIXR_INTEGRATION  
-    //TS1 = boost::posix_time::microsec_clock::local_time();  
-    boost::thread t_lhe = boost::thread(cv::equalizeHist, boost::cref(img_leftin), boost::ref(img_left));
-    //TS2 = boost::posix_time::microsec_clock::local_time();
-    boost::thread t_rhe = boost::thread(cv::equalizeHist, boost::cref(img_rightin), boost::ref(img_right));
-#endif /// ILLIXR_INTEGRATION
-    t_lhe.join();
-    //TE1 = boost::posix_time::microsec_clock::local_time();
-    t_rhe.join();
-    //TE2 = boost::posix_time::microsec_clock::local_time();
-    En1 =  boost::posix_time::microsec_clock::local_time();
-
-    double first_thread = (TE1 - TS1).total_microseconds() * 1e-3;
-    double second_thread = (TE2 - TS2).total_microseconds() * 1e-3;
-    // double concat = (En3 - St3).total_microseconds() * 1e-3;
-    // printf(RED "The time taken for concatenation is %.3f ms.\n", concat);    
-    double six_threads = (En2 - St2).total_microseconds() * 1e-3;
-    double two_threads = (En1 - St1).total_microseconds() * 1e-3;
-
-    printf(RED "\n---------------------SIX THREADS------------------------------------\n");
-    // printf(RED "The time taken for first thread is %.3f ms.\n", first_thread_me);
-    // printf(RED "The time taken for second thread is %.3f ms.\n", second_thread_me);
-    // printf(RED "The time taken for third thread is %.3f ms.\n", third_thread_me);
-    // printf(RED "The time taken for fourth thread is %.3f ms.\n", fourth_thread_me);
-    // printf(RED "The time taken for fifth thread is %.3f ms.\n", fifth_thread_me);
-    // printf(RED "The time taken for sixth thread is %.3f ms.\n", sixth_thread_me);
-    printf(RED "The time taken for creating the histogram using six threads is %.3f ms.\n", six_threads);
-    
-    // double histogram_time_me = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
-    printf(RED "\n---------------------TWO THREADS------------------------------------\n");
-    //printf(RED "The time taken for first thread is %.3f ms.\n", first_thread);
-    //printf(RED "The time taken for second thread is %.3f ms.\n", second_thread);
-    printf(RED "The time taken for histogram using two threads is %.3f ms.\n",two_threads);
-
-    // Extract image pyramids (boost seems to require us to put all the arguments even if there are defaults....)
     std::vector<cv::Mat> imgpyr_left, imgpyr_right;
 
     rtchStrt =  boost::posix_time::microsec_clock::local_time();
 
-#ifdef ILLIXR_INTEGRATION
-    //printf(RED"Inside buildOpticalFlowPyramid ILLIXIR integration");
-    std::thread t_lp = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_left),
-                                       cv::_OutputArray(imgpyr_left), win_size, pyr_levels, false,
-                                       cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-    std::thread t_rp = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_right),
-                                       cv::_OutputArray(imgpyr_right), win_size, pyr_levels,
-                                       false, cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-#else /// ILLIXR_INTEGRATION so this is wokring.
-    //printf(RED"Inside buildOpticalFlowPyramid else ILLIXIR integration");
-    boost::thread t_lp = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left),
-                                       boost::ref(imgpyr_left), boost::ref(win_size), boost::ref(pyr_levels), false,
-                                       cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-    boost::thread t_rp = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_right),
-                                       boost::ref(imgpyr_right), boost::ref(win_size), boost::ref(pyr_levels),
-                                       false, cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-#endif /// ILLIXR_INTEGRATION
-    t_lp.join();
-    t_rp.join();
+    #ifdef ILLIXR_INTEGRATION
+    // Run buildOpticalFlowPyramid on each part of img_left and img_right in separate threads
+    std::thread t_lp0 = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_left_part0),
+                                    cv::_OutputArray(imgpyr_left_part0), win_size, pyr_levels, false,
+                                    cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
+    std::thread t_lp1 = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_left_part1),
+                                    cv::_OutputArray(imgpyr_left_part1), win_size, pyr_levels, false,
+                                    cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
+
+    std::thread t_rp0 = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_right_part0),
+                                    cv::_OutputArray(imgpyr_right_part0), win_size, pyr_levels, false,
+                                    cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
+    std::thread t_rp1 = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_right_part1),
+                                    cv::_OutputArray(imgpyr_right_part1), win_size, pyr_levels, false,
+                                    cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
+    #else
+    boost::thread t_lp0 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left_part0),
+                                        boost::ref(imgpyr_left_part0), boost::ref(win_size), boost::ref(pyr_levels), false,
+                                        cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
+    boost::thread t_lp1 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left_part1),
+                                        boost::ref(imgpyr_left_part1), boost::ref(win_size), boost::ref(pyr_levels), false,
+                                        cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
+
+    boost::thread t_rp0 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_right_part0),
+                                        boost::ref(imgpyr_right_part0), boost::ref(win_size), boost::ref(pyr_levels), false,
+                                        cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
+    boost::thread t_rp1 = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_right_part1),
+                                        boost::ref(imgpyr_right_part1), boost::ref(win_size), boost::ref(pyr_levels), false,
+                                        cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
+    #endif
+
+    // Join all threads
+    t_lp0.join();
+    t_lp1.join();
+    t_rp0.join();
+    t_rp1.join();
+
 
     rtchEnd =  boost::posix_time::microsec_clock::local_time();
     double pyramid_time_me = (rtchEnd - rtchStrt).total_microseconds() * 1e-3;
