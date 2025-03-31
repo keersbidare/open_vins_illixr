@@ -1,0 +1,76 @@
+[2024-09-27 16:02:59.988] [illixr] [debug] [phonebook] Register N6ILLIXR13record_loggerE
+[2024-09-27 16:02:59.988] [illixr] [debug] [phonebook] Register N6ILLIXR8gen_guidE
+[2024-09-27 16:02:59.988] [illixr] [debug] [phonebook] Register N6ILLIXR11switchboardE
+[2024-09-27 16:02:59.988] [illixr] [debug] [extended_window] Opening display
+[2024-09-27 16:02:59.989] [illixr] [debug] [extended_window] Getting matching framebuffer configs
+[2024-09-27 16:03:00.054] [illixr] [debug] [extended_window] Found 28 matching FB configs
+[2024-09-27 16:03:00.054] [illixr] [debug] [extended_window] Getting XVisualInfos
+[2024-09-27 16:03:00.054] [illixr] [debug] [extended_window] Matching fbconfig 0, visual ID 21: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:00.054] [illixr] [debug] [extended_window] Matching fbconfig 1, visual ID 6a8: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:00.054] [illixr] [debug] [extended_window] Matching fbconfig 2, visual ID 736: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:00.054] [illixr] [debug] [extended_window] Matching fbconfig 3, visual ID 738: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:00.054] [illixr] [debug] [extended_window] Matching fbconfig 4, visual ID 6d2: SAMPLE_BUFFERS = 1, SAMPLES = 2
+[2024-09-27 16:03:00.054] [illixr] [debug] [extended_window] Matching fbconfig 5, visual ID 6d6: SAMPLE_BUFFERS = 1, SAMPLES = 2
+[2024-09-27 16:03:00.054] [illixr] [debug] [extended_window] Matching fbconfig 6, visual ID 762: SAMPLE_BUFFERS = 1, SAMPLES = 2
+[2024-09-27 16:03:00.054] [illixr] [debug] [extended_window] Matching fbconfig 7, visual ID 766: SAMPLE_BUFFERS = 1, SAMPLES = 2
+[2024-09-27 16:03:00.054] [illixr] [debug] [extended_window] Matching fbconfig 8, visual ID 6d3: SAMPLE_BUFFERS = 1, SAMPLES = 4
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 9, visual ID 6d7: SAMPLE_BUFFERS = 1, SAMPLES = 4
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 10, visual ID 763: SAMPLE_BUFFERS = 1, SAMPLES = 4
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 11, visual ID 767: SAMPLE_BUFFERS = 1, SAMPLES = 4
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 12, visual ID 6d4: SAMPLE_BUFFERS = 1, SAMPLES = 8
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 13, visual ID 6d8: SAMPLE_BUFFERS = 1, SAMPLES = 8
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 14, visual ID 764: SAMPLE_BUFFERS = 1, SAMPLES = 8
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 15, visual ID 768: SAMPLE_BUFFERS = 1, SAMPLES = 8
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 16, visual ID 6d5: SAMPLE_BUFFERS = 1, SAMPLES = 16
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 17, visual ID 6d9: SAMPLE_BUFFERS = 1, SAMPLES = 16
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 18, visual ID 765: SAMPLE_BUFFERS = 1, SAMPLES = 16
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 19, visual ID 769: SAMPLE_BUFFERS = 1, SAMPLES = 16
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 20, visual ID 6a7: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 21, visual ID 6a9: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 22, visual ID 737: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 23, visual ID 739: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 24, visual ID 1fa: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 25, visual ID 8db: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 26, visual ID 8e6: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Matching fbconfig 27, visual ID 8e7: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Chose visual ID = 6d5
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Creating colormap
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Creating window
+[2024-09-27 16:03:00.055] [illixr] [debug] [extended_window] Creating context
+[2024-09-27 16:03:00.056] [illixr] [debug] [phonebook] Register N6ILLIXR23xlib_gl_extended_windowE
+[2024-09-27 16:03:00.056] [illixr] [debug] [phonebook] Register N6ILLIXR9StoplightE
+[2024-09-27 16:03:00.056] [illixr] [debug] [phonebook] Register N6ILLIXR13RelativeClockE
+[2024-09-27 16:03:13.955] [illixr] [debug] [phonebook] Register N6ILLIXR13record_loggerE
+[2024-09-27 16:03:13.955] [illixr] [debug] [phonebook] Register N6ILLIXR8gen_guidE
+[2024-09-27 16:03:13.955] [illixr] [debug] [phonebook] Register N6ILLIXR11switchboardE
+[2024-09-27 16:03:13.955] [illixr] [debug] [extended_window] Opening display
+[2024-09-27 16:03:13.956] [illixr] [debug] [extended_window] Getting matching framebuffer configs
+[2024-09-27 16:03:14.022] [illixr] [debug] [extended_window] Found 28 matching FB configs
+[2024-09-27 16:03:14.022] [illixr] [debug] [extended_window] Getting XVisualInfos
+[2024-09-27 16:03:14.022] [illixr] [debug] [extended_window] Matching fbconfig 0, visual ID 21: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:14.022] [illixr] [debug] [extended_window] Matching fbconfig 1, visual ID 6a8: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:14.022] [illixr] [debug] [extended_window] Matching fbconfig 2, visual ID 736: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:14.022] [illixr] [debug] [extended_window] Matching fbconfig 3, visual ID 738: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:14.022] [illixr] [debug] [extended_window] Matching fbconfig 4, visual ID 6d2: SAMPLE_BUFFERS = 1, SAMPLES = 2
+[2024-09-27 16:03:14.022] [illixr] [debug] [extended_window] Matching fbconfig 5, visual ID 6d6: SAMPLE_BUFFERS = 1, SAMPLES = 2
+[2024-09-27 16:03:14.022] [illixr] [debug] [extended_window] Matching fbconfig 6, visual ID 762: SAMPLE_BUFFERS = 1, SAMPLES = 2
+[2024-09-27 16:03:14.022] [illixr] [debug] [extended_window] Matching fbconfig 7, visual ID 766: SAMPLE_BUFFERS = 1, SAMPLES = 2
+[2024-09-27 16:03:14.022] [illixr] [debug] [extended_window] Matching fbconfig 8, visual ID 6d3: SAMPLE_BUFFERS = 1, SAMPLES = 4
+[2024-09-27 16:03:14.022] [illixr] [debug] [extended_window] Matching fbconfig 9, visual ID 6d7: SAMPLE_BUFFERS = 1, SAMPLES = 4
+[2024-09-27 16:03:14.022] [illixr] [debug] [extended_window] Matching fbconfig 10, visual ID 763: SAMPLE_BUFFERS = 1, SAMPLES = 4
+[2024-09-27 16:03:14.022] [illixr] [debug] [extended_window] Matching fbconfig 11, visual ID 767: SAMPLE_BUFFERS = 1, SAMPLES = 4
+[2024-09-27 16:03:14.023] [illixr] [debug] [extended_window] Matching fbconfig 12, visual ID 6d4: SAMPLE_BUFFERS = 1, SAMPLES = 8
+[2024-09-27 16:03:14.023] [illixr] [debug] [extended_window] Matching fbconfig 13, visual ID 6d8: SAMPLE_BUFFERS = 1, SAMPLES = 8
+[2024-09-27 16:03:14.023] [illixr] [debug] [extended_window] Matching fbconfig 14, visual ID 764: SAMPLE_BUFFERS = 1, SAMPLES = 8
+[2024-09-27 16:03:14.023] [illixr] [debug] [extended_window] Matching fbconfig 15, visual ID 768: SAMPLE_BUFFERS = 1, SAMPLES = 8
+[2024-09-27 16:03:14.023] [illixr] [debug] [extended_window] Matching fbconfig 16, visual ID 6d5: SAMPLE_BUFFERS = 1, SAMPLES = 16
+[2024-09-27 16:03:14.023] [illixr] [debug] [extended_window] Matching fbconfig 17, visual ID 6d9: SAMPLE_BUFFERS = 1, SAMPLES = 16
+[2024-09-27 16:03:14.023] [illixr] [debug] [extended_window] Matching fbconfig 18, visual ID 765: SAMPLE_BUFFERS = 1, SAMPLES = 16
+[2024-09-27 16:03:14.023] [illixr] [debug] [extended_window] Matching fbconfig 19, visual ID 769: SAMPLE_BUFFERS = 1, SAMPLES = 16
+[2024-09-27 16:03:14.023] [illixr] [debug] [extended_window] Matching fbconfig 20, visual ID 6a7: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:14.023] [illixr] [debug] [extended_window] Matching fbconfig 21, visual ID 6a9: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:14.023] [illixr] [debug] [extended_window] Matching fbconfig 22, visual ID 737: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:14.023] [illixr] [debug] [extended_window] Matching fbconfig 23, visual ID 739: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:14.023] [illixr] [debug] [extended_window] Matching fbconfig 24, visual ID 1fa: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:14.023] [illixr] [debug] [extended_window] Matching fbconfig 25, visual ID 8db: SAMPLE_BUFFERS = 0, SAMPLES = 0
+[2024-09-27 16:03:14.023] [illixr] [debug] [extended_window] Matching fbconfig 26, visual ID 8e6: SAMPLE_BUFFERS = 0,

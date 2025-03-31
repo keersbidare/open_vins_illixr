@@ -137,7 +137,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     rT1 =  boost::posix_time::microsec_clock::local_time();
 
     int overlap = 10;
-    
+    std::unique_lock<std::mutex> lck1(mtx_feeds.at(cam_id_left));
+    std::unique_lock<std::mutex> lck2(mtx_feeds.at(cam_id_right));
     //cv::Mat img_left = cv::Mat(img_leftin.rows, img_leftin.cols, img_leftin.type());
     //cv::Mat img_right = cv::Mat(img_rightin.rows, img_rightin.cols, img_rightin.type());
 
@@ -217,8 +218,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     rT2 =  boost::posix_time::microsec_clock::local_time();
 
      // Lock this data feed for this camera
-    std::unique_lock<std::mutex> lck1(mtx_feeds.at(cam_id_left));
-    std::unique_lock<std::mutex> lck2(mtx_feeds.at(cam_id_right));
+    
     
    
 
