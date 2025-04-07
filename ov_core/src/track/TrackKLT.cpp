@@ -181,8 +181,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
         // Track into the new image
         perform_detection_stereo(imgpyr_left, imgpyr_right, pts_last[cam_id_left], pts_last[cam_id_right], ids_last[cam_id_left], ids_last[cam_id_right]);
         // Save the current image and pyramid
-        img_last[cam_id_left] = img_left_class.getClonedView();
-        img_last[cam_id_right] = img_right_class.getClonedView();
+        img_last[cam_id_left] = img_left.clone();
+        img_last[cam_id_right] = img_right.clone();
         img_pyramid_last[cam_id_left] = imgpyr_left;
         img_pyramid_last[cam_id_right] = imgpyr_right;
 
@@ -242,8 +242,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     // If any of our masks are empty, that means we didn't have enough to do ransac, so just return
     if(mask_ll.empty() || mask_rr.empty()) {
-        img_last[cam_id_left] = img_left_class.getClonedView();
-        img_last[cam_id_right] = img_right_class.getClonedView();
+        img_last[cam_id_left] = img_left.clone();
+        img_last[cam_id_right] = img_right.clone();
         img_pyramid_last[cam_id_left] = imgpyr_left;
         img_pyramid_last[cam_id_right] = imgpyr_right;
         pts_last[cam_id_left].clear();
@@ -324,8 +324,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     }
 
     // Move forward in time
-    img_last[cam_id_left] = img_left_class.getClonedView();
-    img_last[cam_id_right] = img_right_class.getClonedView();
+    img_last[cam_id_left] = img_left.clone();
+    img_last[cam_id_right] = img_right.clone();
     img_pyramid_last[cam_id_left] = imgpyr_left;
     img_pyramid_last[cam_id_right] = imgpyr_right;
     pts_last[cam_id_left] = good_left;
