@@ -149,7 +149,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     // Pre-allocate final output
     img_left.create(img_leftin.size(), img_leftin.type());
     img_right.create(img_rightin.size(), img_rightin.type());
-
+    St1 =  boost::posix_time::microsec_clock::local_time();
     #ifdef ILLIXR_INTEGRATION
     // ===== MODERN (std::async) =====
 
@@ -213,7 +213,19 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     // Wait for all threads
     for (auto& t : threads) t.join();
-
+    En1 = boost::posix_time::microsec_clock::local_time();
+    const auto pyramid_time_with_two_threads = (St1-En1).total_microseconds() * 1e-3;
+    #endif
+    St1 =  boost::posix_time::microsec_clock::local_time();
+    cv::Mat img_left1, img_right1;
+    #ifdef ILLIXR_INTEGRATION    
+    std::thread t_lhe = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin ), cv::_OutputArray(img_left1 ));
+    std::thread t_rhe = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin), cv::_OutputArray(img_right1));
+    #else /// ILLIXR_INTEGRATION
+    boost::thread t_lhe = boost::thread(cv::equalizeHist, boost::cref(img_leftin), boost::ref(img_left1));
+    boost::thread t_rhe = boost::thread(cv::equalizeHist, boost::cref(img_rightin), boost::ref(img_right1));
+    En1 = boost::posix_time::microsec_clock::local_time();
+    const auto pyramid_time_with_one_thread = (St1-En1).total_microseconds() * 1e-3;
     #endif
         std::vector<cv::Mat> imgpyr_left, imgpyr_right;
     #ifdef ILLIXR_INTEGRATION
@@ -414,7 +426,9 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     total_db_time += db_time;
     total_time += total;
 
-    printf(CYAN "[TIME-KLT]: %.4f ms for pyramid\n" RESET, pyramid_time);
+    printf(CYAN "[TIME-KLT]: %.4f ms for pyramid\n" RESET, pyramid_time_with_one_thread);
+    printf(CYAN "[TIME-KLT]: %.4f ms for pyramid\n" RESET, pyramid_time_with_two_threads);
+    //printf(CYAN "[TIME-KLT]: %.4f ms for pyramid\n" RESET, pyramid_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for detection\n" RESET, detection_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for temporal klt\n" RESET, temporal_klt_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for stereo klt\n" RESET, stereo_klt_time);
