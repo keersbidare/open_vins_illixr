@@ -143,17 +143,17 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     
     cv::Mat img_left, img_right;
-    
+    img_left.create(img_leftin.size(), img_leftin.type());
+    img_right.create(img_rightin.size(), img_rightin.type());
     std::map<int, double> slice_timings;
     int best_slice_count = 1;
     double best_time = std::numeric_limits<double>::max();
 
     for (int num_slices = 1; num_slices <= 6; ++num_slices) {
-        cv::Mat img_left, img_right;
-        img_left.create(img_leftin.size(), img_leftin.type());
-        img_right.create(img_rightin.size(), img_rightin.type());
+        //cv::Mat img_left, img_right;
+        
 
-        boost::posix_time::ptime slice_start = boost::posix_time::microsec_clock::local_time();
+    boost::posix_time::ptime slice_start = boost::posix_time::microsec_clock::local_time();
 
     #ifdef ILLIXR_INTEGRATION
         std::vector<std::future<void>> futures;
