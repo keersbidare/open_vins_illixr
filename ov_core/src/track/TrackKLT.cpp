@@ -141,83 +141,81 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     std::unique_lock<std::mutex> lck1(mtx_feeds.at(cam_id_left));
     std::unique_lock<std::mutex> lck2(mtx_feeds.at(cam_id_right));
 
-    
     cv::Mat img_left, img_right;
+
+// Number of vertical slices per image
+    const int num_slices = 4;
+
+    // Pre-allocate final output
     img_left.create(img_leftin.size(), img_leftin.type());
     img_right.create(img_rightin.size(), img_rightin.type());
-    std::map<int, double> slice_timings;
-    int best_slice_count = 1;
-    double best_time = std::numeric_limits<double>::max();
-
-    for (int num_slices = 1; num_slices <= 6; ++num_slices) {
-        //cv::Mat img_left, img_right;
-        
-
-    boost::posix_time::ptime slice_start = boost::posix_time::microsec_clock::local_time();
 
     #ifdef ILLIXR_INTEGRATION
-        std::vector<std::future<void>> futures;
+    // ===== MODERN (std::async) =====
 
-        for (int i = 0; i < num_slices; ++i) {
-            int y = i * img_leftin.rows / num_slices;
-            int h = (i == num_slices - 1) ? (img_leftin.rows - y) : (img_leftin.rows / num_slices);
-            futures.emplace_back(std::async(std::launch::async, [&, y, h] {
-                cv::Mat slice_in = img_leftin(cv::Rect(0, y, img_leftin.cols, h));
-                cv::Mat slice_out = img_left(cv::Rect(0, y, img_leftin.cols, h));
-                cv::equalizeHist(slice_in, slice_out);
-            }));
-        }
+    std::vector<std::future<void>> futures;
 
-        for (int i = 0; i < num_slices; ++i) {
-            int y = i * img_rightin.rows / num_slices;
-            int h = (i == num_slices - 1) ? (img_rightin.rows - y) : (img_rightin.rows / num_slices);
-            futures.emplace_back(std::async(std::launch::async, [&, y, h] {
-                cv::Mat slice_in = img_rightin(cv::Rect(0, y, img_rightin.cols, h));
-                cv::Mat slice_out = img_right(cv::Rect(0, y, img_rightin.cols, h));
-                cv::equalizeHist(slice_in, slice_out);
-            }));
-        }
+    // LEFT image
+    for (int i = 0; i < num_slices; ++i) {
+        int y = i * img_leftin.rows / num_slices;
+        int h = (i == num_slices - 1) ? (img_leftin.rows - y) : (img_leftin.rows / num_slices);
 
-        for (auto& f : futures) f.get();
-    #else
-        std::vector<boost::thread> threads;
-
-        for (int i = 0; i < num_slices; ++i) {
-            int y = i * img_leftin.rows / num_slices;
-            int h = (i == num_slices - 1) ? (img_leftin.rows - y) : (img_leftin.rows / num_slices);
-            threads.emplace_back([&, y, h]() {
-                cv::Mat slice_in = img_leftin(cv::Rect(0, y, img_leftin.cols, h));
-                cv::Mat slice_out = img_left(cv::Rect(0, y, img_leftin.cols, h));
-                cv::equalizeHist(slice_in, slice_out);
-            });
-        }
-
-        for (int i = 0; i < num_slices; ++i) {
-            int y = i * img_rightin.rows / num_slices;
-            int h = (i == num_slices - 1) ? (img_rightin.rows - y) : (img_rightin.rows / num_slices);
-            threads.emplace_back([&, y, h]() {
-                cv::Mat slice_in = img_rightin(cv::Rect(0, y, img_rightin.cols, h));
-                cv::Mat slice_out = img_right(cv::Rect(0, y, img_rightin.cols, h));
-                cv::equalizeHist(slice_in, slice_out);
-            });
-        }
-
-        for (auto& t : threads) t.join();
-    #endif
-
-        boost::posix_time::ptime slice_end = boost::posix_time::microsec_clock::local_time();
-        double elapsed = (slice_end - slice_start).total_microseconds() * 1e-3;
-
-        slice_timings[num_slices] = elapsed;
-        if (elapsed < best_time) {
-            best_time = elapsed;
-            best_slice_count = num_slices;
-        }
-
-        printf(RED"[Slice Benchmark]: %d slices took = %.4f ms\n",num_slices,elapsed);
+        futures.emplace_back(std::async(std::launch::async, [&, y, h] {
+            cv::Mat slice_in = img_leftin(cv::Rect(0, y, img_leftin.cols, h));
+            cv::Mat slice_out = img_left(cv::Rect(0, y, img_leftin.cols, h));
+            cv::equalizeHist(slice_in, slice_out); // in-place into final img_left
+        }));
     }
 
-    printf(RED"\n Best performance: %d slices with time = %.4f ms\n",best_slice_count, best_time);
+    // RIGHT image
+    for (int i = 0; i < num_slices; ++i) {
+        int y = i * img_rightin.rows / num_slices;
+        int h = (i == num_slices - 1) ? (img_rightin.rows - y) : (img_rightin.rows / num_slices);
+
+        futures.emplace_back(std::async(std::launch::async, [&, y, h] {
+            cv::Mat slice_in = img_rightin(cv::Rect(0, y, img_rightin.cols, h));
+            cv::Mat slice_out = img_right(cv::Rect(0, y, img_rightin.cols, h));
+            cv::equalizeHist(slice_in, slice_out);
+        }));
+    }
+
+    // Wait for all futures
+    for (auto& f : futures) f.get();
+
+    #else
+    // ===== LEGACY (Boost) =====
+
+    std::vector<boost::thread> threads;
+
+    // LEFT image
+    for (int i = 0; i < num_slices; ++i) {
+        int y = i * img_leftin.rows / num_slices;
+        int h = (i == num_slices - 1) ? (img_leftin.rows - y) : (img_leftin.rows / num_slices);
+
+        threads.emplace_back([&, y, h]() {
+            cv::Mat slice_in = img_leftin(cv::Rect(0, y, img_leftin.cols, h));
+            cv::Mat slice_out = img_left(cv::Rect(0, y, img_leftin.cols, h));
+            cv::equalizeHist(slice_in, slice_out);
+        });
+    }
+
+    // RIGHT image
+    for (int i = 0; i < num_slices; ++i) {
+        int y = i * img_rightin.rows / num_slices;
+        int h = (i == num_slices - 1) ? (img_rightin.rows - y) : (img_rightin.rows / num_slices);
+
+        threads.emplace_back([&, y, h]() {
+            cv::Mat slice_in = img_rightin(cv::Rect(0, y, img_rightin.cols, h));
+            cv::Mat slice_out = img_right(cv::Rect(0, y, img_rightin.cols, h));
+            cv::equalizeHist(slice_in, slice_out);
+        });
+    }
+
+    // Wait for all threads
+    for (auto& t : threads) t.join();
+
+    #endif
+
 
 
     std::vector<cv::Mat> imgpyr_left, imgpyr_right;
@@ -421,7 +419,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     //printf(CYAN "[TIME-KLT]: %.4f ms for one thread pyramid\n" RESET, pyramid_time_with_one_threads);
     //printf(CYAN "[TIME-KLT]: %.4f ms for two thread pyramid\n" RESET, pyramid_time_with_two_threads);
-    //printf(CYAN "[TIME-KLT]: %.4f ms for pyramid\n" RESET, pyramid_time);
+    printf(CYAN "[TIME-KLT]: %.4f ms for pyramid\n" RESET, pyramid_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for detection\n" RESET, detection_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for temporal klt\n" RESET, temporal_klt_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for stereo klt\n" RESET, stereo_klt_time);
