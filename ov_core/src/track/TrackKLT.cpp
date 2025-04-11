@@ -275,12 +275,12 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     future_left.get();
     future_right.get();
     #else
-    boost::thread t_lp = boost::thread(build_pyramid_parallel<boost::thread>,
-                                        boost::cref(img_left), boost::ref(imgpyr_left),
-                                        boost::ref(win_size), pyr_levels);
-    boost::thread t_rp = boost::thread(build_pyramid_parallel<boost::thread>,
-                                        boost::cref(img_right), boost::ref(imgpyr_right),
-                                        boost::ref(win_size), pyr_levels);
+    boost::thread t_lp([&]() {
+    buildOpticalFlowPyramidParallel<boost::thread>(img_left, imgpyr_left, win_size, pyr_levels);
+    });
+    boost::thread t_rp([&]() {
+        buildOpticalFlowPyramidParallel<boost::thread>(img_right, imgpyr_right, win_size, pyr_levels);
+    });
     t_lp.join();
     t_rp.join();
 #endif
