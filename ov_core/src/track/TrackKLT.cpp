@@ -155,7 +155,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     t_lhe.join();
     t_rhe.join();
     En1 = boost::posix_time::microsec_clock::local_time();
-    const auto pyramid_time_with_two_threads = (En1-St1).total_microseconds() * 1e-3;
+    const auto pyramid_time_with_one_threads = (En1-St1).total_microseconds() * 1e-3;
     cv::Mat img_left, img_right;
     
     // Number of vertical slices per image
@@ -233,7 +233,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     #endif
     En1 = boost::posix_time::microsec_clock::local_time();
     const auto pyramid_time_with_two_threads = (En1-St1).total_microseconds() * 1e-3;
-    
+
     std::vector<cv::Mat> imgpyr_left, imgpyr_right;
     #ifdef ILLIXR_INTEGRATION
         std::thread t_lp = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_left),
@@ -433,7 +433,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     total_db_time += db_time;
     total_time += total;
 
-    printf(CYAN "[TIME-KLT]: %.4f ms for one thread pyramid\n" RESET, pyramid_time_with_one_thread);
+    printf(CYAN "[TIME-KLT]: %.4f ms for one thread pyramid\n" RESET, pyramid_time_with_one_threads);
     printf(CYAN "[TIME-KLT]: %.4f ms for two thread pyramid\n" RESET, pyramid_time_with_two_threads);
     //printf(CYAN "[TIME-KLT]: %.4f ms for pyramid\n" RESET, pyramid_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for detection\n" RESET, detection_time);
