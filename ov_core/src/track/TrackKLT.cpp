@@ -149,13 +149,15 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     #else /// ILLIXR_INTEGRATION
     boost::thread t_lhe = boost::thread(cv::equalizeHist, boost::cref(img_leftin), boost::ref(img_left1));
     boost::thread t_rhe = boost::thread(cv::equalizeHist, boost::cref(img_rightin), boost::ref(img_right1));
-    En1 = boost::posix_time::microsec_clock::local_time();
+    
     const auto pyramid_time_with_one_thread = (En1-St1).total_microseconds() * 1e-3;
     #endif
-
+    t_lhe.join();
+    t_rhe.join();
+    En1 = boost::posix_time::microsec_clock::local_time();
     cv::Mat img_left, img_right;
 
-// Number of vertical slices per image
+    // Number of vertical slices per image
     const int num_slices = 2;
 
     // Pre-allocate final output
