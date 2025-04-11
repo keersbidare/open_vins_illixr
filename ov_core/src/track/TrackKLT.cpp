@@ -262,8 +262,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     t_rp.join();
     En1 = boost::posix_time::microsec_clock::local_time();
     St2 = boost::posix_time::microsec_clock::local_time();
-    std::vector<cv::Mat> imgpyr_left, imgpyr_right;
-    boost::posix_time::ptime pyr_start = boost::posix_time::microsec_clock::local_time();
+    //std::vector<cv::Mat> imgpyr_left, imgpyr_right;
+    
 
     #ifdef ILLIXR_INTEGRATION
     auto future_left = std::async(std::launch::async, [&] {
@@ -275,14 +275,14 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     future_left.get();
     future_right.get();
     #else
-    boost::thread t_lp([&]() {
+    boost::thread future_left([&]() {
     buildOpticalFlowPyramidParallel<boost::thread>(img_left, imgpyr_left, win_size, pyr_levels);
     });
-    boost::thread t_rp([&]() {
+    boost::thread future_right([&]() {
         buildOpticalFlowPyramidParallel<boost::thread>(img_right, imgpyr_right, win_size, pyr_levels);
     });
-    t_lp.join();
-    t_rp.join();
+    future_left.join();
+    future_right.join();
 #endif
     En2 = boost::posix_time::microsec_clock::local_time();
     rT2 =  boost::posix_time::microsec_clock::local_time();
