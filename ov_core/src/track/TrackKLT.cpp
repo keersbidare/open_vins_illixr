@@ -24,6 +24,30 @@
 
 using namespace ov_core;
 
+template <typename ThreadType>
+void buildOpticalFlowPyramidParallel(const cv::Mat& image,
+                                     std::vector<cv::Mat>& pyramid,
+                                     const cv::Size& win_size,
+                                     int max_level) {
+    pyramid.resize(max_level);
+    pyramid[0] = image.clone();
+
+    std::vector<ThreadType> threads;
+    for (int i = 1; i < max_level; ++i) {
+        threads.emplace_back([&, i]() {
+            cv::pyrDown(pyramid[i - 1], pyramid[i],
+                        cv::Size(pyramid[i - 1].cols / 2, pyramid[i - 1].rows / 2));
+        });
+    }
+
+    for (auto& t : threads) {
+        if constexpr (std::is_same<ThreadType, std::future<void>>::value) {
+            t.get();
+        } else {
+            t.join();
+        }
+    }
+}
 
 void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
 
@@ -217,7 +241,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     #endif
 
 
-
+    St1 = boost::posix_time::microsec_clock::local_time();
     std::vector<cv::Mat> imgpyr_left, imgpyr_right;
     #ifdef ILLIXR_INTEGRATION
         std::thread t_lp = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_left),
@@ -236,7 +260,31 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     #endif /// ILLIXR_INTEGRATION
     t_lp.join();
     t_rp.join();
+    En1 = boost::posix_time::microsec_clock::local_time();
+    St2 = boost::posix_time::microsec_clock::local_time();
+    std::vector<cv::Mat> imgpyr_left, imgpyr_right;
+    boost::posix_time::ptime pyr_start = boost::posix_time::microsec_clock::local_time();
 
+    #ifdef ILLIXR_INTEGRATION
+    auto future_left = std::async(std::launch::async, [&] {
+        build_pyramid_parallel<std::future<void>>(img_left, imgpyr_left, win_size, pyr_levels);
+    });
+    auto future_right = std::async(std::launch::async, [&] {
+        build_pyramid_parallel<std::future<void>>(img_right, imgpyr_right, win_size, pyr_levels);
+    });
+    future_left.get();
+    future_right.get();
+    #else
+    boost::thread t_lp = boost::thread(build_pyramid_parallel<boost::thread>,
+                                        boost::cref(img_left), boost::ref(imgpyr_left),
+                                        boost::ref(win_size), pyr_levels);
+    boost::thread t_rp = boost::thread(build_pyramid_parallel<boost::thread>,
+                                        boost::cref(img_right), boost::ref(imgpyr_right),
+                                        boost::ref(win_size), pyr_levels);
+    t_lp.join();
+    t_rp.join();
+#endif
+    En2 = boost::posix_time::microsec_clock::local_time();
     rT2 =  boost::posix_time::microsec_clock::local_time();
     // Lock this data feed for this camera 
     // cv::Mat img_left = img_left_class.getClonedView();
@@ -402,6 +450,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
 #ifndef NDEBUG
     // Timing information
+    const auto optical_flow_orig = (En1-St1).total_microseconds() * 1e-3;
+    const auto optical_flow_edited = (En2-St2).total_microseconds() * 1e-3;
     const auto pyramid_time = (rT2-rT1).total_microseconds() * 1e-3;
     const auto detection_time = (rT3-rT2).total_microseconds() * 1e-3;
     const auto temporal_klt_time = (rT4-rT3).total_microseconds() * 1e-3;
@@ -417,8 +467,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     total_db_time += db_time;
     total_time += total;
 
-    //printf(CYAN "[TIME-KLT]: %.4f ms for one thread pyramid\n" RESET, pyramid_time_with_one_threads);
-    //printf(CYAN "[TIME-KLT]: %.4f ms for two thread pyramid\n" RESET, pyramid_time_with_two_threads);
+    printf(CYAN "[TIME-KLT]: %.4f ms for original optical pyramid\n" RESET, optical_flow_orig);
+    printf(CYAN "[TIME-KLT]: %.4f ms for edited optical pyramid\n" RESET, optical_flow_edited);
     printf(CYAN "[TIME-KLT]: %.4f ms for pyramid\n" RESET, pyramid_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for detection\n" RESET, detection_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for temporal klt\n" RESET, temporal_klt_time);
