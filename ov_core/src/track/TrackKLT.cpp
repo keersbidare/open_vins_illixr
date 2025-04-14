@@ -175,70 +175,79 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     img_right.create(img_rightin.size(), img_rightin.type());
 
     #ifdef ILLIXR_INTEGRATION
-    // ===== MODERN (std::async) =====
+    std::thread t_lhe = std::thread(cv::equalizeHist, cv::_InputArray(img_leftin ), cv::_OutputArray(img_left ));
+    std::thread t_rhe = std::thread(cv::equalizeHist, cv::_InputArray(img_rightin), cv::_OutputArray(img_right));
+    #else /// ILLIXR_INTEGRATION
+    boost::thread t_lhe = boost::thread(cv::equalizeHist, boost::cref(img_leftin), boost::ref(img_left));
+    boost::thread t_rhe = boost::thread(cv::equalizeHist, boost::cref(img_rightin), boost::ref(img_right));
+    #endif /// ILLIXR_INTEGRATION
+    t_lhe.join();
+    t_lhe.join();
+    
+    // // ===== MODERN (std::async) =====
 
-    std::vector<std::future<void>> futures;
+    // std::vector<std::future<void>> futures;
 
-    // LEFT image
-    for (int i = 0; i < num_slices; ++i) {
-        int y = i * img_leftin.rows / num_slices;
-        int h = (i == num_slices - 1) ? (img_leftin.rows - y) : (img_leftin.rows / num_slices);
+    // // LEFT image
+    // for (int i = 0; i < num_slices; ++i) {
+    //     int y = i * img_leftin.rows / num_slices;
+    //     int h = (i == num_slices - 1) ? (img_leftin.rows - y) : (img_leftin.rows / num_slices);
 
-        futures.emplace_back(std::async(std::launch::async, [&, y, h] {
-            cv::Mat slice_in = img_leftin(cv::Rect(0, y, img_leftin.cols, h));
-            cv::Mat slice_out = img_left(cv::Rect(0, y, img_leftin.cols, h));
-            cv::equalizeHist(slice_in, slice_out); // in-place into final img_left
-        }));
-    }
+    //     futures.emplace_back(std::async(std::launch::async, [&, y, h] {
+    //         cv::Mat slice_in = img_leftin(cv::Rect(0, y, img_leftin.cols, h));
+    //         cv::Mat slice_out = img_left(cv::Rect(0, y, img_leftin.cols, h));
+    //         cv::equalizeHist(slice_in, slice_out); // in-place into final img_left
+    //     }));
+    // }
 
-    // RIGHT image
-    for (int i = 0; i < num_slices; ++i) {
-        int y = i * img_rightin.rows / num_slices;
-        int h = (i == num_slices - 1) ? (img_rightin.rows - y) : (img_rightin.rows / num_slices);
+    // // RIGHT image
+    // for (int i = 0; i < num_slices; ++i) {
+    //     int y = i * img_rightin.rows / num_slices;
+    //     int h = (i == num_slices - 1) ? (img_rightin.rows - y) : (img_rightin.rows / num_slices);
 
-        futures.emplace_back(std::async(std::launch::async, [&, y, h] {
-            cv::Mat slice_in = img_rightin(cv::Rect(0, y, img_rightin.cols, h));
-            cv::Mat slice_out = img_right(cv::Rect(0, y, img_rightin.cols, h));
-            cv::equalizeHist(slice_in, slice_out);
-        }));
-    }
+    //     futures.emplace_back(std::async(std::launch::async, [&, y, h] {
+    //         cv::Mat slice_in = img_rightin(cv::Rect(0, y, img_rightin.cols, h));
+    //         cv::Mat slice_out = img_right(cv::Rect(0, y, img_rightin.cols, h));
+    //         cv::equalizeHist(slice_in, slice_out);
+    //     }));
+    // }
 
     // Wait for all futures
-    for (auto& f : futures) f.get();
+    // for (auto& f : futures) f.get();
 
-    #else
-    // ===== LEGACY (Boost) =====
+    // #else
+    // // ===== LEGACY (Boost) =====
 
-    std::vector<boost::thread> threads;
+    // std::vector<boost::thread> threads;
 
-    // LEFT image
-    for (int i = 0; i < num_slices; ++i) {
-        int y = i * img_leftin.rows / num_slices;
-        int h = (i == num_slices - 1) ? (img_leftin.rows - y) : (img_leftin.rows / num_slices);
+    // // LEFT image
+    // for (int i = 0; i < num_slices; ++i) {
+    //     int y = i * img_leftin.rows / num_slices;
+    //     int h = (i == num_slices - 1) ? (img_leftin.rows - y) : (img_leftin.rows / num_slices);
 
-        threads.emplace_back([&, y, h]() {
-            cv::Mat slice_in = img_leftin(cv::Rect(0, y, img_leftin.cols, h));
-            cv::Mat slice_out = img_left(cv::Rect(0, y, img_leftin.cols, h));
-            cv::equalizeHist(slice_in, slice_out);
-        });
-    }
+    //     threads.emplace_back([&, y, h]() {
+    //         cv::Mat slice_in = img_leftin(cv::Rect(0, y, img_leftin.cols, h));
+    //         cv::Mat slice_out = img_left(cv::Rect(0, y, img_leftin.cols, h));
+    //         cv::equalizeHist(slice_in, slice_out);
+    //     });
+    // }
 
-    // RIGHT image
-    for (int i = 0; i < num_slices; ++i) {
-        int y = i * img_rightin.rows / num_slices;
-        int h = (i == num_slices - 1) ? (img_rightin.rows - y) : (img_rightin.rows / num_slices);
+    // // RIGHT image
+    // for (int i = 0; i < num_slices; ++i) {
+    //     int y = i * img_rightin.rows / num_slices;
+    //     int h = (i == num_slices - 1) ? (img_rightin.rows - y) : (img_rightin.rows / num_slices);
 
-        threads.emplace_back([&, y, h]() {
-            cv::Mat slice_in = img_rightin(cv::Rect(0, y, img_rightin.cols, h));
-            cv::Mat slice_out = img_right(cv::Rect(0, y, img_rightin.cols, h));
-            cv::equalizeHist(slice_in, slice_out);
-        });
-    }
+    //     threads.emplace_back([&, y, h]() {
+    //         cv::Mat slice_in = img_rightin(cv::Rect(0, y, img_rightin.cols, h));
+    //         cv::Mat slice_out = img_right(cv::Rect(0, y, img_rightin.cols, h));
+    //         cv::equalizeHist(slice_in, slice_out);
+    //     });
+    // }
 
-    // Wait for all threads
-    for (auto& t : threads) t.join();
+    // // Wait for all threads
+    // for (auto& t : threads) t.join();
 
-    #endif
+    //#endif
 
 
     St1 = boost::posix_time::microsec_clock::local_time();
@@ -261,30 +270,30 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     t_lp.join();
     t_rp.join();
     En1 = boost::posix_time::microsec_clock::local_time();
-    St2 = boost::posix_time::microsec_clock::local_time();
+    //St2 = boost::posix_time::microsec_clock::local_time();
     //std::vector<cv::Mat> imgpyr_left, imgpyr_right;
     
 
-    #ifdef ILLIXR_INTEGRATION
-    auto future_left = std::async(std::launch::async, [&] {
-        build_pyramid_parallel<std::future<void>>(img_left, imgpyr_left, win_size, pyr_levels);
-    });
-    auto future_right = std::async(std::launch::async, [&] {
-        build_pyramid_parallel<std::future<void>>(img_right, imgpyr_right, win_size, pyr_levels);
-    });
-    future_left.get();
-    future_right.get();
-    #else
-    boost::thread future_left([&]() {
-    buildOpticalFlowPyramidParallel<boost::thread>(img_left, imgpyr_left, win_size, pyr_levels);
-    });
-    boost::thread future_right([&]() {
-        buildOpticalFlowPyramidParallel<boost::thread>(img_right, imgpyr_right, win_size, pyr_levels);
-    });
-    future_left.join();
-    future_right.join();
-#endif
-    En2 = boost::posix_time::microsec_clock::local_time();
+//     #ifdef ILLIXR_INTEGRATION
+//     auto future_left = std::async(std::launch::async, [&] {
+//         build_pyramid_parallel<std::future<void>>(img_left, imgpyr_left, win_size, pyr_levels);
+//     });
+//     auto future_right = std::async(std::launch::async, [&] {
+//         build_pyramid_parallel<std::future<void>>(img_right, imgpyr_right, win_size, pyr_levels);
+//     });
+//     future_left.get();
+//     future_right.get();
+//     #else
+//     boost::thread future_left([&]() {
+//     buildOpticalFlowPyramidParallel<boost::thread>(img_left, imgpyr_left, win_size, pyr_levels);
+//     });
+//     boost::thread future_right([&]() {
+//         buildOpticalFlowPyramidParallel<boost::thread>(img_right, imgpyr_right, win_size, pyr_levels);
+//     });
+//     future_left.join();
+//     future_right.join();
+// #endif
+//     En2 = boost::posix_time::microsec_clock::local_time();
     rT2 =  boost::posix_time::microsec_clock::local_time();
     // Lock this data feed for this camera 
     // cv::Mat img_left = img_left_class.getClonedView();
