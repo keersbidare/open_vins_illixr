@@ -243,25 +243,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     St1 = boost::posix_time::microsec_clock::local_time();
     std::vector<cv::Mat> imgpyr_left, imgpyr_right;
-    #ifdef ILLIXR_INTEGRATION
-        std::thread t_lp = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_left),
-                                        cv::_OutputArray(imgpyr_left), win_size, pyr_levels, false,
-                                        cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-        std::thread t_rp = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_right),
-                                        cv::_OutputArray(imgpyr_right), win_size, pyr_levels,
-                                        false, cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-    #else /// ILLIXR_INTEGRATION
-        boost::thread t_lp = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left),
-                                        boost::ref(imgpyr_left), boost::ref(win_size), boost::ref(pyr_levels), false,
-                                        cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-        boost::thread t_rp = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_right),
-                                        boost::ref(imgpyr_right), boost::ref(win_size), boost::ref(pyr_levels),
-                                        false, cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-    #endif /// ILLIXR_INTEGRATION
-    t_lp.join();
-    t_rp.join();
-    En1 = boost::posix_time::microsec_clock::local_time();
-    St2 = boost::posix_time::microsec_clock::local_time();
+   
     //std::vector<cv::Mat> imgpyr_left, imgpyr_right;
     
 
@@ -467,8 +449,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     total_db_time += db_time;
     total_time += total;
 
-    printf(CYAN "[TIME-KLT]: %.4f ms for original optical pyramid\n" RESET, optical_flow_orig);
-    printf(CYAN "[TIME-KLT]: %.4f ms for edited optical pyramid\n" RESET, optical_flow_edited);
+    //printf(CYAN "[TIME-KLT]: %.4f ms for original optical pyramid\n" RESET, optical_flow_orig);
+    //printf(CYAN "[TIME-KLT]: %.4f ms for edited optical pyramid\n" RESET, optical_flow_edited);
     printf(CYAN "[TIME-KLT]: %.4f ms for pyramid\n" RESET, pyramid_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for detection\n" RESET, detection_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for temporal klt\n" RESET, temporal_klt_time);
