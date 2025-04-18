@@ -467,8 +467,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     total_db_time += db_time;
     total_time += total;
 
-    printf(CYAN "[TIME-KLT]: %.4f ms for original optical pyramid\n" RESET, optical_flow_orig);
-    printf(CYAN "[TIME-KLT]: %.4f ms for edited optical pyramid\n" RESET, optical_flow_edited);
+    //printf(CYAN "[TIME-KLT]: %.4f ms for original optical pyramid\n" RESET, optical_flow_orig);
+    //printf(CYAN "[TIME-KLT]: %.4f ms for edited optical pyramid\n" RESET, optical_flow_edited);
     printf(CYAN "[TIME-KLT]: %.4f ms for pyramid\n" RESET, pyramid_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for detection\n" RESET, detection_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for temporal klt\n" RESET, temporal_klt_time);
