@@ -167,8 +167,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     cv::Mat img_left, img_right;
 
-// Number of vertical slices per image
-    const int num_slices = 3;
+    // Number of vertical slices per image
+    const int num_slices = 4;
 
     // Pre-allocate final output
     img_left.create(img_leftin.size(), img_leftin.type());
@@ -263,26 +263,6 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     
     //std::vector<cv::Mat> imgpyr_left, imgpyr_right;
     
-
-// #ifdef ILLIXR_INTEGRATION
-//     auto future_left = std::async(std::launch::async, [&] {
-//         build_pyramid_parallel<std::future<void>>(img_left, imgpyr_left, win_size, pyr_levels);
-//     });
-//     auto future_right = std::async(std::launch::async, [&] {
-//         build_pyramid_parallel<std::future<void>>(img_right, imgpyr_right, win_size, pyr_levels);
-//     });
-//     future_left.get();
-//     future_right.get();
-//     #else
-//     boost::thread future_left([&]() {
-//     buildOpticalFlowPyramidParallel<boost::thread>(img_left, imgpyr_left, win_size, pyr_levels);
-//     });
-//     boost::thread future_right([&]() {
-//         buildOpticalFlowPyramidParallel<boost::thread>(img_right, imgpyr_right, win_size, pyr_levels);
-//     });
-//     future_left.join();
-//     future_right.join();
-// #endif
 //     
     rT2 =  boost::posix_time::microsec_clock::local_time();
     // Lock this data feed for this camera 
@@ -711,7 +691,7 @@ void TrackKLT::perform_matching(const std::vector<cv::Mat>& img0pyr, const std::
         pts0.push_back(kpts0.at(i).pt);
         pts1.push_back(kpts1.at(i).pt);
     }
-
+    printf(WHITE "[SIZE OF THE FEATURES]: %.4f:- number of features\n" RESET, pts0.size()); 
     // If we don't have enough points for ransac just return empty
     // We set the mask to be all zeros since all points failed RANSAC
     if(pts0.size() < 10) {
@@ -735,7 +715,7 @@ void TrackKLT::perform_matching(const std::vector<cv::Mat>& img0pyr, const std::
         pts0_n.push_back(undistort_point(pts0.at(i),id0));
         pts1_n.push_back(undistort_point(pts1.at(i),id1));
     }
-
+    
     // Do RANSAC outlier rejection (note since we normalized the max pixel error is now in the normalized cords)
     std::vector<uchar> mask_rsc;
     double max_focallength_img0 = std::max(camera_k_OPENCV.at(id0)(0,0),camera_k_OPENCV.at(id0)(1,1));
