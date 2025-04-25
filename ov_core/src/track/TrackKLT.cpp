@@ -173,7 +173,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     // Pre-allocate final output
     img_left.create(img_leftin.size(), img_leftin.type());
     img_right.create(img_rightin.size(), img_rightin.type());
-
+    St1 = boost::posix_time::microsec_clock::local_time();
     #ifdef ILLIXR_INTEGRATION
     // ===== MODERN (std::async) =====
 
@@ -239,9 +239,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     for (auto& t : threads) t.join();
 
     #endif
-
-
-    St1 = boost::posix_time::microsec_clock::local_time();
+    En1 = boost::posix_time::microsec_clock::local_time();
+    St2 = boost::posix_time::microsec_clock::local_time();
     std::vector<cv::Mat> imgpyr_left, imgpyr_right;
     #ifdef ILLIXR_INTEGRATION
         std::thread t_lp = std::thread(&cv::buildOpticalFlowPyramid, cv::_InputArray(img_left),
@@ -260,8 +259,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     #endif /// ILLIXR_INTEGRATION
     t_lp.join();
     t_rp.join();
-    En1 = boost::posix_time::microsec_clock::local_time();
-    St2 = boost::posix_time::microsec_clock::local_time();
+    En2 = boost::posix_time::microsec_clock::local_time();
+    
     //std::vector<cv::Mat> imgpyr_left, imgpyr_right;
     
 
@@ -284,7 +283,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 //     future_left.join();
 //     future_right.join();
 // #endif
-//     En2 = boost::posix_time::microsec_clock::local_time();
+//     
     rT2 =  boost::posix_time::microsec_clock::local_time();
     // Lock this data feed for this camera 
     // cv::Mat img_left = img_left_class.getClonedView();
@@ -450,8 +449,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
 #ifndef NDEBUG
     // Timing information
-    const auto optical_flow_orig = (En1-St1).total_microseconds() * 1e-3;
-    const auto optical_flow_edited = (En2-St2).total_microseconds() * 1e-3;
+    const auto histogram = (En1-St1).total_microseconds() * 1e-3;
+    const auto optical_flow = (En2-St2).total_microseconds() * 1e-3;
     const auto pyramid_time = (rT2-rT1).total_microseconds() * 1e-3;
     const auto detection_time = (rT3-rT2).total_microseconds() * 1e-3;
     const auto temporal_klt_time = (rT4-rT3).total_microseconds() * 1e-3;
@@ -467,8 +466,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     total_db_time += db_time;
     total_time += total;
 
-    //printf(CYAN "[TIME-KLT]: %.4f ms for original optical pyramid\n" RESET, optical_flow_orig);
-    //printf(CYAN "[TIME-KLT]: %.4f ms for edited optical pyramid\n" RESET, optical_flow_edited);
+    printf(CYAN "[TIME-KLT]: %.4f ms for original optical pyramid\n" RESET, histogram);
+    printf(CYAN "[TIME-KLT]: %.4f ms for edited optical pyramid\n" RESET, optical_flow);
     printf(CYAN "[TIME-KLT]: %.4f ms for pyramid\n" RESET, pyramid_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for detection\n" RESET, detection_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for temporal klt\n" RESET, temporal_klt_time);
