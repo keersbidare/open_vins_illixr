@@ -168,7 +168,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     cv::Mat img_left, img_right;
 
 // Number of vertical slices per image
-    const int num_slices = 2;
+    const int num_slices = 3;
 
     // Pre-allocate final output
     img_left.create(img_leftin.size(), img_leftin.type());
