@@ -77,9 +77,9 @@ add_library(ov_core_lib SHARED
 target_link_libraries(ov_core_lib
     PUBLIC
         ${thirdparty_libraries}
-        OpenMP::OpenMP_CXX  # ✅ Proper OpenMP linking here!
+        OpenMP::OpenMP_CXX
 )
-target_link_libraries(ov_core_lib ${thirdparty_libraries})
+
 target_include_directories(ov_core_lib PUBLIC src)
 set_property(TARGET ov_core_lib PROPERTY CXX_STANDARD 17)
 
