@@ -12,6 +12,7 @@ project(ov_core)
 find_package(Eigen3 REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time)
+find_package(OpenMP REQUIRED)   
 
 # display message to user
 message(STATUS "EIGEN VERSION: " ${Eigen3_VERSION})
@@ -71,6 +72,12 @@ add_library(ov_core_lib SHARED
         src/types/Landmark.cpp
         src/feat/Feature.cpp
         src/feat/FeatureInitializer.cpp
+)
+
+target_link_libraries(ov_core_lib
+    PUBLIC
+        ${thirdparty_libraries}
+        OpenMP::OpenMP_CXX  # ✅ Proper OpenMP linking here!
 )
 target_link_libraries(ov_core_lib ${thirdparty_libraries})
 target_include_directories(ov_core_lib PUBLIC src)
