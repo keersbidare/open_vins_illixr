@@ -711,6 +711,7 @@ void TrackKLT::perform_matching(const std::vector<cv::Mat>& img0pyr, const std::
     // We don't want to do ransac on distorted image uvs since the mapping is nonlinear
    
     std::vector<cv::Point2f> pts0_n, pts1_n;
+    #pragma omp parallel for
     for(size_t i=0; i<pts0.size(); i++) {
         pts0_n.push_back(undistort_point(pts0.at(i),id0));
         pts1_n.push_back(undistort_point(pts1.at(i),id1));
@@ -724,7 +725,7 @@ void TrackKLT::perform_matching(const std::vector<cv::Mat>& img0pyr, const std::
     cv::findFundamentalMat(pts0_n, pts1_n, cv::FM_RANSAC, 1/max_focallength, 0.999, mask_rsc);
 
     // Loop through and record only ones that are valid
-    
+    //#pragma omp parallel for
     for(size_t i=0; i<mask_klt.size(); i++) {
         auto mask = (uchar)((i < mask_klt.size() && mask_klt[i] && i < mask_rsc.size() && mask_rsc[i])? 1 : 0);
         mask_out.push_back(mask);
@@ -732,6 +733,7 @@ void TrackKLT::perform_matching(const std::vector<cv::Mat>& img0pyr, const std::
 
     // Copy back the updated positions
     
+    //#pragma omp parallel for
     for(size_t i=0; i<pts0.size(); i++) {
         kpts0.at(i).pt = pts0.at(i);
         kpts1.at(i).pt = pts1.at(i);
