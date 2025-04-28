@@ -408,7 +408,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     #pragma omp parallel for
     for(size_t i=0; i<good_left.size(); i++) {
         cv::Point2f npt_l = undistort_point(good_left.at(i).pt, cam_id_left);
-        std::lock_guard<std::mutex> lock(db_mutex);
+        //std::lock_guard<std::mutex> lock(db_mutex);
         {
         database->update_feature(good_ids_left.at(i), timestamp, cam_id_left,
                                  good_left.at(i).pt.x, good_left.at(i).pt.y,
@@ -418,7 +418,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     #pragma omp parallel for
     for(size_t i=0; i<good_right.size(); i++) {
         cv::Point2f npt_r = undistort_point(good_right.at(i).pt, cam_id_right);
-        std::lock_guard<std::mutex> lock(db_mutex);
+        //std::lock_guard<std::mutex> lock(db_mutex);
         {
         database->update_feature(good_ids_right.at(i), timestamp, cam_id_right,
                                  good_right.at(i).pt.x, good_right.at(i).pt.y,
