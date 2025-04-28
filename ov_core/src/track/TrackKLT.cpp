@@ -713,7 +713,7 @@ void TrackKLT::perform_matching(const std::vector<cv::Mat>& img0pyr, const std::
     // We don't want to do ransac on distorted image uvs since the mapping is nonlinear
    
     std::vector<cv::Point2f> pts0_n, pts1_n;
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for(size_t i=0; i<pts0.size(); i++) {
         pts0_n.push_back(undistort_point(pts0.at(i),id0));
         pts1_n.push_back(undistort_point(pts1.at(i),id1));
