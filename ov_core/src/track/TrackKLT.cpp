@@ -404,6 +404,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     // Update our feature database, with theses new observations
     std::mutex db_mutex;
+    omp_set_num_threads(2);
     #pragma omp parallel for
     for(size_t i=0; i<good_left.size(); i++) {
         cv::Point2f npt_l = undistort_point(good_left.at(i).pt, cam_id_left);
