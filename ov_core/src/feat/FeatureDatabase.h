@@ -25,7 +25,7 @@
 #include <vector>
 #include <mutex>
 #include <Eigen/Eigen>
-
+#include <utility> // for std::make_pair
 #include "Feature.h"
 
 
@@ -50,6 +50,13 @@ namespace ov_core {
      * The feature trackers will continue to add features while you update, whose measurements can be used in the next update step!
      *
      */
+    struct FeatureUpdate {
+    size_t id;
+    double timestamp;
+    size_t cam_id;
+    float u, v, u_n, v_n;
+};
+
     class FeatureDatabase {
 
     public:
@@ -127,20 +134,19 @@ namespace ov_core {
             std::unique_lock<std::mutex> lck(mtx); // Lock the database once!
 
             for (const auto& upd : updates) {
-                if (features_idlookup.find(upd.id) != features_idlookup.end()) {
-                    Feature *feat = features_idlookup[upd.id];
-                    feat->uvs[upd.cam_id].emplace_back(Eigen::Vector2f(upd.u, upd.v));
-                    feat->uvs_norm[upd.cam_id].emplace_back(Eigen::Vector2f(upd.u_n, upd.v_n));
-                    feat->timestamps[upd.cam_id].emplace_back(upd.timestamp);
-                    return;
-                }
-                    Feature *feat = new Feature();
-                    feat->featid = upd.id;
-                    feat->uvs[upd.cam_id].emplace_back(Eigen::Vector2f(upd.u, upd.v));
-                    feat->uvs_norm[upd.cam_id].emplace_back(Eigen::Vector2f(upd.u_n, upd.v_n));
-                    feat->timestamps[upd.cam_id].emplace_back(upd.timestamp);
-                    
-                    features_idlookup.insert(std::make_pair(upd.id, feat));
+            if (features_idlookup.find(upd.id) != features_idlookup.end()) {
+                Feature *feat = features_idlookup[upd.id];
+                feat->uvs[upd.cam_id].emplace_back(Eigen::Vector2f(upd.u, upd.v));
+                feat->uvs_norm[upd.cam_id].emplace_back(Eigen::Vector2f(upd.u_n, upd.v_n));
+                feat->timestamps[upd.cam_id].emplace_back(upd.timestamp);
+            } else {
+                Feature *feat = new Feature();
+                feat->featid = upd.id;
+                feat->uvs[upd.cam_id].emplace_back(Eigen::Vector2f(upd.u, upd.v));
+                feat->uvs_norm[upd.cam_id].emplace_back(Eigen::Vector2f(upd.u_n, upd.v_n));
+                feat->timestamps[upd.cam_id].emplace_back(upd.timestamp);
+                features_idlookup.insert(std::make_pair(upd.id, feat));
+            }
                 
             }
         }

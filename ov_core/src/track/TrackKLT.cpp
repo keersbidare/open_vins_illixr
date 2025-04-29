@@ -392,10 +392,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     // Update our feature database, with theses new observations
     
     St3 = boost::posix_time::microsec_clock::local_time();
-    
     std::vector<FeatureUpdate> updates;
-
-
     #pragma omp parallel
     {
         std::vector<FeatureUpdate> thread_local_updates; // Thread-local small vector
