@@ -122,6 +122,35 @@ namespace ov_core {
             features_idlookup.insert({id, feat});
         }
 
+        void update_feature_me(size_t id, double timestamp, size_t cam_id,
+                            float u, float v, float u_n, float v_n) {
+
+            // Find this feature using the ID lookup
+            //std::unique_lock<std::mutex> lck(mtx);
+            if (features_idlookup.find(id) != features_idlookup.end()) {
+                // Get our feature
+                Feature *feat = features_idlookup[id];
+                // Append this new information to it!
+                feat->uvs[cam_id].emplace_back(Eigen::Vector2f(u, v));
+                feat->uvs_norm[cam_id].emplace_back(Eigen::Vector2f(u_n, v_n));
+                feat->timestamps[cam_id].emplace_back(timestamp);
+                return;
+            }
+
+            // Debug info
+            //ROS_INFO("featdb - adding new feature %d",(int)id);
+
+            // Else we have not found the feature, so lets make it be a new one!
+            Feature *feat = new Feature();
+            feat->featid = id;
+            feat->uvs[cam_id].emplace_back(Eigen::Vector2f(u, v));
+            feat->uvs_norm[cam_id].emplace_back(Eigen::Vector2f(u_n, v_n));
+            feat->timestamps[cam_id].emplace_back(timestamp);
+
+            // Append this new feature into our database
+            features_idlookup.insert({id, feat});
+        }
+
 
         /**
          * @brief Get features that do not have newer measurement then the specified time.
