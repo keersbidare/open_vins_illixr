@@ -123,7 +123,7 @@ namespace ov_core {
         }
 
         void update_features_bulk(const std::vector<FeatureUpdate>& updates) {
-            
+
             std::unique_lock<std::mutex> lck(mtx); // Lock the database once!
 
             for (const auto& upd : updates) {
@@ -132,14 +132,16 @@ namespace ov_core {
                     feat->uvs[upd.cam_id].emplace_back(Eigen::Vector2f(upd.u, upd.v));
                     feat->uvs_norm[upd.cam_id].emplace_back(Eigen::Vector2f(upd.u_n, upd.v_n));
                     feat->timestamps[upd.cam_id].emplace_back(upd.timestamp);
-                } else {
+                    return;
+                }
                     Feature *feat = new Feature();
                     feat->featid = upd.id;
                     feat->uvs[upd.cam_id].emplace_back(Eigen::Vector2f(upd.u, upd.v));
                     feat->uvs_norm[upd.cam_id].emplace_back(Eigen::Vector2f(upd.u_n, upd.v_n));
                     feat->timestamps[upd.cam_id].emplace_back(upd.timestamp);
-                    features_idlookup.insert({upd.id, feat});
-                }
+                    
+                    features_idlookup.insert(std::make_pair(upd.id, feat));
+                
             }
         }
 
