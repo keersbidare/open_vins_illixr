@@ -30,10 +30,8 @@ struct FeatureUpdate {
     double timestamp;
     size_t cam_id;
     float u, v, u_n, v_n;
-
-    FeatureUpdate(size_t id, double ts, size_t cid, float u, float v, float un, float vn)
-        : id(id), timestamp(ts), cam_id(cid), u(u), v(v), u_n(un), v_n(vn) {}
 };
+
 std::vector<FeatureUpdate> updates;
 
 void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
@@ -394,39 +392,46 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     // Update our feature database, with theses new observations
     
     St3 = boost::posix_time::microsec_clock::local_time();
+    
+    std::vector<FeatureUpdate> updates;
+
+
     #pragma omp parallel
     {
-    std::vector<FeatureUpdate> thread_local_updates;
+        std::vector<FeatureUpdate> thread_local_updates; // Thread-local small vector
 
-    #pragma omp for nowait
-    for (size_t i = 0; i < good_left.size(); ++i) {
-        cv::Point2f npt_l = undistort_point(good_left[i].pt, cam_id_left);
-        thread_local_updates.emplace_back(good_ids_left[i], timestamp, cam_id_left,
-                                         good_left[i].pt.x, good_left[i].pt.y,
-                                         npt_l.x, npt_l.y);
+        #pragma omp for nowait
+        for (size_t i = 0; i < good_left.size(); ++i) {
+            cv::Point2f npt_l = undistort_point(good_left[i].pt, cam_id_left);
+            thread_local_updates.emplace_back(FeatureUpdate{
+                good_ids_left[i], timestamp, cam_id_left,
+                good_left[i].pt.x, good_left[i].pt.y,
+                npt_l.x, npt_l.y
+            });
+        }
+
+        #pragma omp for nowait
+        for (size_t i = 0; i < good_right.size(); ++i) {
+            cv::Point2f npt_r = undistort_point(good_right[i].pt, cam_id_right);
+            thread_local_updates.emplace_back(FeatureUpdate{
+                good_ids_right[i], timestamp, cam_id_right,
+                good_right[i].pt.x, good_right[i].pt.y,
+                npt_r.x, npt_r.y
+            });
+        }
+
+        // Merge thread-local updates into global updates safely
+        #pragma omp critical
+        {
+            updates.insert(updates.end(), thread_local_updates.begin(), thread_local_updates.end());
+        }
     }
 
-    #pragma omp for nowait
-    for (size_t i = 0; i < good_right.size(); ++i) {
-        cv::Point2f npt_r = undistort_point(good_right[i].pt, cam_id_right);
-        thread_local_updates.emplace_back(good_ids_right[i], timestamp, cam_id_right,
-                                         good_right[i].pt.x, good_right[i].pt.y,
-                                         npt_r.x, npt_r.y);
-    }
+    // After parallel section, update database once
+    database->update_features_bulk(updates);
 
     // Critical section to merge thread-local updates into global updates
-    #pragma omp critical
-    {
-        updates.insert(updates.end(), thread_local_updates.begin(), thread_local_updates.end());
-    }
-    }
-
-    {
-    std::unique_lock<std::mutex> lck(database->mtx);
-    for (auto& upd : updates) {
-        database->update_feature_me(upd.id, upd.timestamp, upd.cam_id, upd.u, upd.v, upd.u_n, upd.v_n);
-    }
-    }
+    
 
     // for(size_t i=0; i<good_left.size(); i++) {
     //     cv::Point2f npt_l = undistort_point(good_left.at(i).pt, cam_id_left);

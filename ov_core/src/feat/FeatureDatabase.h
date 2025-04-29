@@ -122,35 +122,26 @@ namespace ov_core {
             features_idlookup.insert({id, feat});
         }
 
-        void update_feature_me(size_t id, double timestamp, size_t cam_id,
-                            float u, float v, float u_n, float v_n) {
+        void update_features_bulk(const std::vector<FeatureUpdate>& updates) {
+            
+            std::unique_lock<std::mutex> lck(mtx); // Lock the database once!
 
-            // Find this feature using the ID lookup
-            //std::unique_lock<std::mutex> lck(mtx);
-            if (features_idlookup.find(id) != features_idlookup.end()) {
-                // Get our feature
-                Feature *feat = features_idlookup[id];
-                // Append this new information to it!
-                feat->uvs[cam_id].emplace_back(Eigen::Vector2f(u, v));
-                feat->uvs_norm[cam_id].emplace_back(Eigen::Vector2f(u_n, v_n));
-                feat->timestamps[cam_id].emplace_back(timestamp);
-                return;
+            for (const auto& upd : updates) {
+                if (features_idlookup.find(upd.id) != features_idlookup.end()) {
+                    Feature *feat = features_idlookup[upd.id];
+                    feat->uvs[upd.cam_id].emplace_back(Eigen::Vector2f(upd.u, upd.v));
+                    feat->uvs_norm[upd.cam_id].emplace_back(Eigen::Vector2f(upd.u_n, upd.v_n));
+                    feat->timestamps[upd.cam_id].emplace_back(upd.timestamp);
+                } else {
+                    Feature *feat = new Feature();
+                    feat->featid = upd.id;
+                    feat->uvs[upd.cam_id].emplace_back(Eigen::Vector2f(upd.u, upd.v));
+                    feat->uvs_norm[upd.cam_id].emplace_back(Eigen::Vector2f(upd.u_n, upd.v_n));
+                    feat->timestamps[upd.cam_id].emplace_back(upd.timestamp);
+                    features_idlookup.insert({upd.id, feat});
+                }
             }
-
-            // Debug info
-            //ROS_INFO("featdb - adding new feature %d",(int)id);
-
-            // Else we have not found the feature, so lets make it be a new one!
-            Feature *feat = new Feature();
-            feat->featid = id;
-            feat->uvs[cam_id].emplace_back(Eigen::Vector2f(u, v));
-            feat->uvs_norm[cam_id].emplace_back(Eigen::Vector2f(u_n, v_n));
-            feat->timestamps[cam_id].emplace_back(timestamp);
-
-            // Append this new feature into our database
-            features_idlookup.insert({id, feat});
         }
-
 
         /**
          * @brief Get features that do not have newer measurement then the specified time.
