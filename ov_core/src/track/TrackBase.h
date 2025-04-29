@@ -291,6 +291,7 @@ namespace ov_core {
             cv::Vec4d camD = this->camera_d_OPENCV.at(cam_id);
             // Call on the fisheye if we should!
             if (this->camera_fisheye.at(cam_id)) {
+                printf(WHITE "Inside camera_fisheye\n");
                 return undistort_point_fisheye(pt_in, camK, camD);
             }
             return undistort_point_brown(pt_in, camK, camD);
