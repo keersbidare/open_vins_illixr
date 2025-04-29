@@ -24,30 +24,14 @@
 
 using namespace ov_core;
 
-template <typename ThreadType>
-void buildOpticalFlowPyramidParallel(const cv::Mat& image,
-                                     std::vector<cv::Mat>& pyramid,
-                                     const cv::Size& win_size,
-                                     int max_level) {
-    pyramid.resize(max_level);
-    pyramid[0] = image.clone();
 
-    std::vector<ThreadType> threads;
-    for (int i = 1; i < max_level; ++i) {
-        threads.emplace_back([&, i]() {
-            cv::pyrDown(pyramid[i - 1], pyramid[i],
-                        cv::Size(pyramid[i - 1].cols / 2, pyramid[i - 1].rows / 2));
-        });
-    }
-
-    for (auto& t : threads) {
-        if constexpr (std::is_same<ThreadType, std::future<void>>::value) {
-            t.get();
-        } else {
-            t.join();
-        }
-    }
-}
+struct FeatureUpdate {
+    size_t id;
+    double timestamp;
+    size_t cam_id;
+    float u, v, u_n, v_n;
+};
+std::vector<FeatureUpdate> updates;
 
 void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
 
@@ -350,7 +334,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     // Get our "good tracks"
     std::vector<cv::KeyPoint> good_left, good_right;
     std::vector<size_t> good_ids_left, good_ids_right;
-
+    
+    St1 = boost::posix_time::microsec_clock::local_time();
     // Loop through all left points
     for(size_t i=0; i<pts_left_new.size(); i++) {
         // Ensure we do not have any bad KLT tracks (i.e., points are negative)
@@ -383,8 +368,9 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
             //std::cout << "adding to left - " << ids_last[cam_id_left].at(i) << std::endl;
         }
     }
-
+    En1 = boost::posix_time::microsec_clock::local_time();
     // Loop through all right points
+    St2 = boost::posix_time::microsec_clock::local_time();
     for(size_t i=0; i<pts_right_new.size(); i++) {
         // Ensure we do not have any bad KLT tracks (i.e., points are negative)
         if(pts_right_new[i].pt.x < 0 || pts_right_new[i].pt.y < 0)
@@ -398,13 +384,13 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
             //std::cout << "adding to right - " << ids_last[cam_id_right].at(i) << std::endl;
         }
     }
-
+    En2 = boost::posix_time::microsec_clock::local_time();
     //===================================================================================
     //===================================================================================
 
     // Update our feature database, with theses new observations
     
-    
+    St3 = boost::posix_time::microsec_clock::local_time();
     for(size_t i=0; i<good_left.size(); i++) {
         cv::Point2f npt_l = undistort_point(good_left.at(i).pt, cam_id_left);
         //std::lock_guard<std::mutex> lock(db_mutex);
@@ -414,7 +400,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
                                  npt_l.x, npt_l.y);
         }
     }
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for(size_t i=0; i<good_right.size(); i++) {
         cv::Point2f npt_r = undistort_point(good_right.at(i).pt, cam_id_right);
         //std::lock_guard<std::mutex> lock(db_mutex);
@@ -424,7 +410,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
                                  npt_r.x, npt_r.y);
         }
     }
-
+    En3 = boost::posix_time::microsec_clock::local_time();
     // Move forward in time
     img_last[cam_id_left] = img_left.clone();
     img_last[cam_id_right] = img_right.clone();
@@ -438,8 +424,9 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
 #ifndef NDEBUG
     // Timing information
-    const auto histogram = (En1-St1).total_microseconds() * 1e-3;
-    const auto optical_flow = (En2-St2).total_microseconds() * 1e-3;
+    const auto good_feature_left = (En1-St1).total_microseconds() * 1e-3;
+    const auto good_feature_right = (En2-St2).total_microseconds() * 1e-3;
+    const auto database = (En3-St3).total_microseconds() * 1e-3;
     const auto pyramid_time = (rT2-rT1).total_microseconds() * 1e-3;
     const auto detection_time = (rT3-rT2).total_microseconds() * 1e-3;
     const auto temporal_klt_time = (rT4-rT3).total_microseconds() * 1e-3;
@@ -455,8 +442,9 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     total_db_time += db_time;
     total_time += total;
 
-    printf(CYAN "[TIME-KLT]: %.4f ms for histogram\n" RESET, histogram);
-    printf(CYAN "[TIME-KLT]: %.4f ms for optical flow\n" RESET, optical_flow);
+    printf(CYAN "[TIME-KLT]: %.4f ms for getting good_feature_left\n" RESET, good_feature_left);
+    printf(CYAN "[TIME-KLT]: %.4f ms for getting good_feature_right \n" RESET, good_feature_right);
+    printf(CYAN "[TIME-KLT]: %.4f ms for database\n" RESET, database);
     printf(CYAN "[TIME-KLT]: %.4f ms for pyramid\n" RESET, pyramid_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for detection\n" RESET, detection_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for temporal klt\n" RESET, temporal_klt_time);
