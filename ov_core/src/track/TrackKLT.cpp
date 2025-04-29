@@ -32,7 +32,7 @@ struct FeatureUpdate {
     float u, v, u_n, v_n;
 };
 
-std::vector<FeatureUpdate> updates;
+
 
 void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
 
@@ -395,6 +395,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     std::vector<FeatureUpdate> updates;
     #pragma omp parallel
     {
+        
         std::vector<FeatureUpdate> thread_local_updates; // Thread-local small vector
 
         #pragma omp for nowait
