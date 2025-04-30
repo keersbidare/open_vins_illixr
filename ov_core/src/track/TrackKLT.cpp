@@ -438,10 +438,14 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     const auto undistort_point_left = (En4-St4).total_microseconds() * 1e-3;
     const auto update_features_bulk = (En6-St6).total_microseconds() * 1e-3;
     const auto update_vector = (St6-St5).total_microseconds() * 1e-3;
-    printf(CYAN "[TIME-KLT]: %.4f ms for getting undistort_point_left\n" RESET, undistort_point_left);
-    printf(CYAN "[TIME-KLT]: %.4f ms for getting update_features_bulk \n" RESET, update_features_bulk);
-    printf(CYAN "[TIME-KLT]: %.4f ms for update_vector\n" RESET, update_vector);
+    const auto update_local_vector = (St5-En4).total_microseconds() * 1e-3;
 
+    printf(WHITE "[TIME-KLT]: %.4f ms for getting undistort_point_left\n" RESET, undistort_point_left);
+    printf(WHITE "[TIME-KLT]: %.4f ms for update_local_vector\n" RESET, update_local_vector);
+    printf(WHITE "[TIME-KLT]: %.4f ms for update_vector\n" RESET, update_vector);
+    printf(WHITE "[TIME-KLT]: %.4f ms for getting update_features_bulk \n" RESET, update_features_bulk);
+   
+    
     // for(size_t i=0; i<good_left.size(); i++) {
     //     cv::Point2f npt_l = undistort_point(good_left.at(i).pt, cam_id_left);
     //     //std::lock_guard<std::mutex> lock(db_mutex);
@@ -493,9 +497,9 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     total_db_time += db_time;
     total_time += total;
 
-    printf(CYAN "[TIME-KLT]: %.4f ms for getting good_feature_left\n" RESET, good_feature_left);
-    printf(CYAN "[TIME-KLT]: %.4f ms for getting good_feature_right \n" RESET, good_feature_right);
-    printf(CYAN "[TIME-KLT]: %.4f ms for database\n" RESET, database);
+    //printf(WHITE "[TIME-KLT]: %.4f ms for getting good_feature_left\n" RESET, good_feature_left);
+    //printf(WHITE "[TIME-KLT]: %.4f ms for getting good_feature_right \n" RESET, good_feature_right);
+    printf(WHITE "[TIME-KLT]: %.4f ms for database\n" RESET, database);
     printf(CYAN "[TIME-KLT]: %.4f ms for pyramid\n" RESET, pyramid_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for detection\n" RESET, detection_time);
     printf(CYAN "[TIME-KLT]: %.4f ms for temporal klt\n" RESET, temporal_klt_time);
