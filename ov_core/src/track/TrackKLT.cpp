@@ -410,6 +410,10 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
             });
             St5 = boost::posix_time::microsec_clock::local_time();
         }
+        const auto undistort_point_left = (En4-St4).total_microseconds() * 1e-3;
+        const auto update_local_vector_left = (St5-En4).total_microseconds() * 1e-3;
+        printf(WHITE "[TIME-KLT]: %.4f ms for undistort_point_left\n" RESET, undistort_point_left);
+        printf(WHITE "[TIME-KLT]: %.4f ms for update_local_vector_left\n" RESET, update_local_vector_left);
 
         #pragma omp for nowait
         for (size_t i = 0; i < good_right.size(); ++i) {
@@ -435,15 +439,17 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     database->update_features_bulk(updates);
     En6 = boost::posix_time::microsec_clock::local_time();
     // Critical section to merge thread-local updates into global updates
-    const auto undistort_point_left = (En4-St4).total_microseconds() * 1e-3;
+    
+    const auto undistort_point_right = (En4-St4).total_microseconds() * 1e-3;
     const auto update_features_bulk = (En6-St6).total_microseconds() * 1e-3;
     const auto update_vector = (St6-St5).total_microseconds() * 1e-3;
-    const auto update_local_vector = (St5-En4).total_microseconds() * 1e-3;
+    const auto update_local_vector_right = (St5-En4).total_microseconds() * 1e-3;
+    
 
-    printf(WHITE "[TIME-KLT]: %.4f ms for getting undistort_point_left\n" RESET, undistort_point_left);
-    printf(WHITE "[TIME-KLT]: %.4f ms for update_local_vector\n" RESET, update_local_vector);
+    printf(WHITE "[TIME-KLT]: %.4f ms for undistort_point_right\n" RESET, undistort_point_right);
+    printf(WHITE "[TIME-KLT]: %.4f ms for update_local_vector_right\n" RESET, update_local_vector_right);
     printf(WHITE "[TIME-KLT]: %.4f ms for update_vector\n" RESET, update_vector);
-    printf(WHITE "[TIME-KLT]: %.4f ms for getting update_features_bulk \n" RESET, update_features_bulk);
+    printf(WHITE "[TIME-KLT]: %.4f ms for update_features_bulk \n" RESET, update_features_bulk);
    
     
     // for(size_t i=0; i<good_left.size(); i++) {
