@@ -156,7 +156,7 @@ class SplitImageView {
                               std::vector<cv::KeyPoint> &pts1, size_t id0, size_t id1, std::vector<uchar> &mask_out);
 
         // Timing variables
-        boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5, rT6, rT7, rtchStrt, rtchEnd, St1, En1, St2, En2, St3, En3;
+        boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5, rT6, rT7, rtchStrt, rtchEnd, St1, En1, St2, En2, St3, En3, St4, En4, St5, En5, St6, En6;
         unsigned total_images;
         double total_pyramid_time;
         double total_detection_time;

@@ -400,36 +400,47 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
         #pragma omp for nowait
         for (size_t i = 0; i < good_left.size(); ++i) {
+            St4 = boost::posix_time::microsec_clock::local_time();  
             cv::Point2f npt_l = undistort_point(good_left[i].pt, cam_id_left);
+            En4 = boost::posix_time::microsec_clock::local_time();
             thread_local_updates.emplace_back(FeatureUpdate{
                 good_ids_left[i], timestamp, cam_id_left,
                 good_left[i].pt.x, good_left[i].pt.y,
                 npt_l.x, npt_l.y
             });
+            St5 = boost::posix_time::microsec_clock::local_time();
         }
 
         #pragma omp for nowait
         for (size_t i = 0; i < good_right.size(); ++i) {
+            St4 = boost::posix_time::microsec_clock::local_time();
             cv::Point2f npt_r = undistort_point(good_right[i].pt, cam_id_right);
+            En4 = boost::posix_time::microsec_clock::local_time();
             thread_local_updates.emplace_back(FeatureUpdate{
                 good_ids_right[i], timestamp, cam_id_right,
                 good_right[i].pt.x, good_right[i].pt.y,
                 npt_r.x, npt_r.y
             });
+            St5 = boost::posix_time::microsec_clock::local_time();
         }
-
+    
         // Merge thread-local updates into global updates safely
         #pragma omp critical
         {
             updates.insert(updates.end(), thread_local_updates.begin(), thread_local_updates.end());
         }
     }
-
+    St6 = boost::posix_time::microsec_clock::local_time();
     // After parallel section, update database once
     database->update_features_bulk(updates);
-
+    En6 = boost::posix_time::microsec_clock::local_time();
     // Critical section to merge thread-local updates into global updates
-    
+    const auto undistort_point_left = (En4-St4).total_microseconds() * 1e-3;
+    const auto update_features_bulk = (En6-St6).total_microseconds() * 1e-3;
+    const auto update_vector = (St6-St5).total_microseconds() * 1e-3;
+    printf(CYAN "[TIME-KLT]: %.4f ms for getting undistort_point_left\n" RESET, undistort_point_left);
+    printf(CYAN "[TIME-KLT]: %.4f ms for getting update_features_bulk \n" RESET, update_features_bulk);
+    printf(CYAN "[TIME-KLT]: %.4f ms for update_vector\n" RESET, update_vector);
 
     // for(size_t i=0; i<good_left.size(); i++) {
     //     cv::Point2f npt_l = undistort_point(good_left.at(i).pt, cam_id_left);
