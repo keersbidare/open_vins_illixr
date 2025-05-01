@@ -399,8 +399,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     double max_merge_time = 0;
     #pragma omp parallel
    {
-    std::vector<FeatureUpdate> thread_local_updates;
-
+    std::vector<FeatureUpdate> thread_local_updates_left;
+    std::vector<FeatureUpdate> thread_local_updates_right;
     double local_undistort_left = 0, local_undistort_right = 0;
     double local_vector_left = 0, local_vector_right = 0;
 
@@ -409,7 +409,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
         auto t1 = boost::posix_time::microsec_clock::local_time();
         cv::Point2f npt_l = undistort_point(good_left[i].pt, cam_id_left);
         auto t2 = boost::posix_time::microsec_clock::local_time();
-        thread_local_updates.emplace_back(FeatureUpdate{
+        thread_local_updates_left.emplace_back(FeatureUpdate{
             good_ids_left[i], timestamp, cam_id_left,
             good_left[i].pt.x, good_left[i].pt.y,
             npt_l.x, npt_l.y
@@ -425,7 +425,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
         auto t1 = boost::posix_time::microsec_clock::local_time();
         cv::Point2f npt_r = undistort_point(good_right[i].pt, cam_id_right);
         auto t2 = boost::posix_time::microsec_clock::local_time();
-        thread_local_updates.emplace_back(FeatureUpdate{
+        thread_local_updates_right.emplace_back(FeatureUpdate{
             good_ids_right[i], timestamp, cam_id_right,
             good_right[i].pt.x, good_right[i].pt.y,
             npt_r.x, npt_r.y
@@ -436,13 +436,13 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
         local_vector_right = std::max(local_vector_right, (t3 - t2).total_microseconds() * 1e-3);
     }
 
-        auto t_merge_start = boost::posix_time::microsec_clock::local_time();
-        #pragma omp critical
-        {
-            updates.insert(updates.end(), thread_local_updates.begin(), thread_local_updates.end());
-        }
-        auto t_merge_end = boost::posix_time::microsec_clock::local_time();
-        auto local_merge_time = (t_merge_end - t_merge_start).total_microseconds() * 1e-3;
+        // auto t_merge_start = boost::posix_time::microsec_clock::local_time();
+        // #pragma omp critical
+        // {
+        //     updates.insert(updates.end(), thread_local_updates.begin(), thread_local_updates.end());
+        // }
+        // auto t_merge_end = boost::posix_time::microsec_clock::local_time();
+        // auto local_merge_time = (t_merge_end - t_merge_start).total_microseconds() * 1e-3;
 
         // Merge profiling metrics
         #pragma omp critical
@@ -456,7 +456,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
    }
 
         auto St6 = boost::posix_time::microsec_clock::local_time();
-        database->update_features_bulk(updates);
+        database->update_features_bulk(thread_local_updates_left);
+        database->update_features_bulk(thread_local_updates_right);
         auto En3 = boost::posix_time::microsec_clock::local_time();
 
         // Print results
