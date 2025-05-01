@@ -451,7 +451,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
             max_undistort_right = std::max(max_undistort_right, local_undistort_right);
             max_vector_left = std::max(max_vector_left, local_vector_left);
             max_vector_right = std::max(max_vector_right, local_vector_right);
-            max_merge_time = std::max(max_merge_time, local_merge_time);
+            //max_merge_time = std::max(max_merge_time, local_merge_time);
         }
    }
 
