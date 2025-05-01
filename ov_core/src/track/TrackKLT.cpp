@@ -396,11 +396,11 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     double max_undistort_left = 0, max_undistort_right = 0;
     double max_vector_left = 0, max_vector_right = 0;
-    double max_merge_time = 0;
-    #pragma omp parallel
-   {
     std::vector<FeatureUpdate> thread_local_updates_left;
     std::vector<FeatureUpdate> thread_local_updates_right;
+    #pragma omp parallel
+   {
+    
     double local_undistort_left = 0, local_undistort_right = 0;
     double local_vector_left = 0, local_vector_right = 0;
 
@@ -420,6 +420,11 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
         local_vector_left = std::max(local_vector_left, (t3 - t2).total_microseconds() * 1e-3);
     }
 
+    // #pragma omp critical
+    // {
+    //     database->update_features_bulk(thread_local_updates_left);
+    // }
+
     #pragma omp for nowait
     for (size_t i = 0; i < good_right.size(); ++i) {
         auto t1 = boost::posix_time::microsec_clock::local_time();
@@ -435,6 +440,12 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
         local_undistort_right = std::max(local_undistort_right, (t2 - t1).total_microseconds() * 1e-3);
         local_vector_right = std::max(local_vector_right, (t3 - t2).total_microseconds() * 1e-3);
     }
+
+    // #pragma omp critical
+    // {
+    //     database->update_features_bulk(thread_local_updates_right);
+    // }
+
 
         // auto t_merge_start = boost::posix_time::microsec_clock::local_time();
         // #pragma omp critical
