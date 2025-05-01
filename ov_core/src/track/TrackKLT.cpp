@@ -393,63 +393,80 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     
     St3 = boost::posix_time::microsec_clock::local_time();
     std::vector<FeatureUpdate> updates;
+
+    double max_undistort_left = 0, max_undistort_right = 0;
+    double max_vector_left = 0, max_vector_right = 0;
+    double max_merge_time = 0;
     #pragma omp parallel
-    {
-        
-        std::vector<FeatureUpdate> thread_local_updates; // Thread-local small vector
+   {
+    std::vector<FeatureUpdate> thread_local_updates;
 
-        #pragma omp for nowait
-        for (size_t i = 0; i < good_left.size(); ++i) {
-            St4 = boost::posix_time::microsec_clock::local_time();  
-            cv::Point2f npt_l = undistort_point(good_left[i].pt, cam_id_left);
-            En4 = boost::posix_time::microsec_clock::local_time();
-            thread_local_updates.emplace_back(FeatureUpdate{
-                good_ids_left[i], timestamp, cam_id_left,
-                good_left[i].pt.x, good_left[i].pt.y,
-                npt_l.x, npt_l.y
-            });
-            St5 = boost::posix_time::microsec_clock::local_time();
-        }
-        const auto undistort_point_left = (En4-St4).total_microseconds() * 1e-3;
-        const auto update_local_vector_left = (St5-En4).total_microseconds() * 1e-3;
-        printf(WHITE "[TIME-KLT]: %.4f ms for undistort_point_left\n" RESET, undistort_point_left);
-        printf(WHITE "[TIME-KLT]: %.4f ms for update_local_vector_left\n" RESET, update_local_vector_left);
+    double local_undistort_left = 0, local_undistort_right = 0;
+    double local_vector_left = 0, local_vector_right = 0;
 
-        #pragma omp for nowait
-        for (size_t i = 0; i < good_right.size(); ++i) {
-            St4 = boost::posix_time::microsec_clock::local_time();
-            cv::Point2f npt_r = undistort_point(good_right[i].pt, cam_id_right);
-            En4 = boost::posix_time::microsec_clock::local_time();
-            thread_local_updates.emplace_back(FeatureUpdate{
-                good_ids_right[i], timestamp, cam_id_right,
-                good_right[i].pt.x, good_right[i].pt.y,
-                npt_r.x, npt_r.y
-            });
-            St5 = boost::posix_time::microsec_clock::local_time();
-        }
-    
-        // Merge thread-local updates into global updates safely
+    #pragma omp for nowait
+    for (size_t i = 0; i < good_left.size(); ++i) {
+        auto t1 = boost::posix_time::microsec_clock::local_time();
+        cv::Point2f npt_l = undistort_point(good_left[i].pt, cam_id_left);
+        auto t2 = boost::posix_time::microsec_clock::local_time();
+        thread_local_updates.emplace_back(FeatureUpdate{
+            good_ids_left[i], timestamp, cam_id_left,
+            good_left[i].pt.x, good_left[i].pt.y,
+            npt_l.x, npt_l.y
+        });
+        auto t3 = boost::posix_time::microsec_clock::local_time();
+
+        local_undistort_left = std::max(local_undistort_left, (t2 - t1).total_microseconds() * 1e-3);
+        local_vector_left = std::max(local_vector_left, (t3 - t2).total_microseconds() * 1e-3);
+    }
+
+    #pragma omp for nowait
+    for (size_t i = 0; i < good_right.size(); ++i) {
+        auto t1 = boost::posix_time::microsec_clock::local_time();
+        cv::Point2f npt_r = undistort_point(good_right[i].pt, cam_id_right);
+        auto t2 = boost::posix_time::microsec_clock::local_time();
+        thread_local_updates.emplace_back(FeatureUpdate{
+            good_ids_right[i], timestamp, cam_id_right,
+            good_right[i].pt.x, good_right[i].pt.y,
+            npt_r.x, npt_r.y
+        });
+        auto t3 = boost::posix_time::microsec_clock::local_time();
+
+        local_undistort_right = std::max(local_undistort_right, (t2 - t1).total_microseconds() * 1e-3);
+        local_vector_right = std::max(local_vector_right, (t3 - t2).total_microseconds() * 1e-3);
+    }
+
+        auto t_merge_start = boost::posix_time::microsec_clock::local_time();
         #pragma omp critical
         {
             updates.insert(updates.end(), thread_local_updates.begin(), thread_local_updates.end());
         }
-    }
-    St6 = boost::posix_time::microsec_clock::local_time();
-    // After parallel section, update database once
-    database->update_features_bulk(updates);
-    En6 = boost::posix_time::microsec_clock::local_time();
-    // Critical section to merge thread-local updates into global updates
-    
-    const auto undistort_point_right = (En4-St4).total_microseconds() * 1e-3;
-    const auto update_features_bulk = (En6-St6).total_microseconds() * 1e-3;
-    const auto update_vector = (St6-St5).total_microseconds() * 1e-3;
-    const auto update_local_vector_right = (St5-En4).total_microseconds() * 1e-3;
-    
+        auto t_merge_end = boost::posix_time::microsec_clock::local_time();
+        auto local_merge_time = (t_merge_end - t_merge_start).total_microseconds() * 1e-3;
 
-    printf(WHITE "[TIME-KLT]: %.4f ms for undistort_point_right\n" RESET, undistort_point_right);
-    printf(WHITE "[TIME-KLT]: %.4f ms for update_local_vector_right\n" RESET, update_local_vector_right);
-    printf(WHITE "[TIME-KLT]: %.4f ms for update_vector\n" RESET, update_vector);
-    printf(WHITE "[TIME-KLT]: %.4f ms for update_features_bulk \n" RESET, update_features_bulk);
+        // Merge profiling metrics
+        #pragma omp critical
+        {
+            max_undistort_left = std::max(max_undistort_left, local_undistort_left);
+            max_undistort_right = std::max(max_undistort_right, local_undistort_right);
+            max_vector_left = std::max(max_vector_left, local_vector_left);
+            max_vector_right = std::max(max_vector_right, local_vector_right);
+            max_merge_time = std::max(max_merge_time, local_merge_time);
+        }
+   }
+
+        auto St6 = boost::posix_time::microsec_clock::local_time();
+        database->update_features_bulk(updates);
+        auto En3 = boost::posix_time::microsec_clock::local_time();
+
+        // Print results
+        printf(WHITE "[TIME-KLT]: %.4f ms for undistort_point_left (max per thread)\n" RESET, max_undistort_left);
+        printf(WHITE "[TIME-KLT]: %.4f ms for update_local_vector_left (max per thread)\n" RESET, max_vector_left);
+        printf(WHITE "[TIME-KLT]: %.4f ms for undistort_point_right (max per thread)\n" RESET, max_undistort_right);
+        printf(WHITE "[TIME-KLT]: %.4f ms for update_local_vector_right (max per thread)\n" RESET, max_vector_right);
+        printf(WHITE "[TIME-KLT]: %.4f ms for update_features_bulk\n" RESET, (En3 - St6).total_microseconds() * 1e-3);
+        //printf(WHITE "[TIME-KLT]: %.4f ms for database (total wall time)\n" RESET, (En3 - St3).total_microseconds() * 1e-3);
+
    
     
     // for(size_t i=0; i<good_left.size(); i++) {
