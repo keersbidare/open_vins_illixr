@@ -394,57 +394,57 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     St3 = boost::posix_time::microsec_clock::local_time();
     //std::vector<FeatureUpdate> updates;
 
-    double max_undistort_left = 0, max_undistort_right = 0;
-    double max_vector_left = 0, max_vector_right = 0;
+//     double max_undistort_left = 0, max_undistort_right = 0;
+//     double max_vector_left = 0, max_vector_right = 0;
     
-    #pragma omp parallel
-   {
+//     #pragma omp parallel
+//    {
     
-    double local_undistort_left = 0, local_undistort_right = 0;
-    double local_vector_left = 0, local_vector_right = 0;
-    std::vector<FeatureUpdate> thread_local_updates_left;
-    std::vector<FeatureUpdate> thread_local_updates_right;
-    #pragma omp for nowait
-    for (size_t i = 0; i < good_left.size(); ++i) {
-        auto t1 = boost::posix_time::microsec_clock::local_time();
-        cv::Point2f npt_l = undistort_point(good_left[i].pt, cam_id_left);
-        auto t2 = boost::posix_time::microsec_clock::local_time();
-        thread_local_updates_left.emplace_back(FeatureUpdate{
-            good_ids_left[i], timestamp, cam_id_left,
-            good_left[i].pt.x, good_left[i].pt.y,
-            npt_l.x, npt_l.y
-        });
-        auto t3 = boost::posix_time::microsec_clock::local_time();
+//     double local_undistort_left = 0, local_undistort_right = 0;
+//     double local_vector_left = 0, local_vector_right = 0;
+//     std::vector<FeatureUpdate> thread_local_updates_left;
+//     std::vector<FeatureUpdate> thread_local_updates_right;
+//     #pragma omp for nowait
+//     for (size_t i = 0; i < good_left.size(); ++i) {
+//         auto t1 = boost::posix_time::microsec_clock::local_time();
+//         cv::Point2f npt_l = undistort_point(good_left[i].pt, cam_id_left);
+//         auto t2 = boost::posix_time::microsec_clock::local_time();
+//         thread_local_updates_left.emplace_back(FeatureUpdate{
+//             good_ids_left[i], timestamp, cam_id_left,
+//             good_left[i].pt.x, good_left[i].pt.y,
+//             npt_l.x, npt_l.y
+//         });
+    //     auto t3 = boost::posix_time::microsec_clock::local_time();
 
-        local_undistort_left = std::max(local_undistort_left, (t2 - t1).total_microseconds() * 1e-3);
-        local_vector_left = std::max(local_vector_left, (t3 - t2).total_microseconds() * 1e-3);
-    }
+    //     local_undistort_left = std::max(local_undistort_left, (t2 - t1).total_microseconds() * 1e-3);
+    //     local_vector_left = std::max(local_vector_left, (t3 - t2).total_microseconds() * 1e-3);
+    // }
 
-    #pragma omp critical
-    {
-        database->update_features_bulk(thread_local_updates_left);
-    }
+    // #pragma omp critical
+    // {
+    //     database->update_features_bulk(thread_local_updates_left);
+    // }
 
-    #pragma omp for nowait
-    for (size_t i = 0; i < good_right.size(); ++i) {
-        auto t1 = boost::posix_time::microsec_clock::local_time();
-        cv::Point2f npt_r = undistort_point(good_right[i].pt, cam_id_right);
-        auto t2 = boost::posix_time::microsec_clock::local_time();
-        thread_local_updates_right.emplace_back(FeatureUpdate{
-            good_ids_right[i], timestamp, cam_id_right,
-            good_right[i].pt.x, good_right[i].pt.y,
-            npt_r.x, npt_r.y
-        });
-        auto t3 = boost::posix_time::microsec_clock::local_time();
+    // #pragma omp for nowait
+    // for (size_t i = 0; i < good_right.size(); ++i) {
+    //     auto t1 = boost::posix_time::microsec_clock::local_time();
+    //     cv::Point2f npt_r = undistort_point(good_right[i].pt, cam_id_right);
+    //     auto t2 = boost::posix_time::microsec_clock::local_time();
+    //     thread_local_updates_right.emplace_back(FeatureUpdate{
+    //         good_ids_right[i], timestamp, cam_id_right,
+    //         good_right[i].pt.x, good_right[i].pt.y,
+    //         npt_r.x, npt_r.y
+    //     });
+    //     auto t3 = boost::posix_time::microsec_clock::local_time();
 
-        local_undistort_right = std::max(local_undistort_right, (t2 - t1).total_microseconds() * 1e-3);
-        local_vector_right = std::max(local_vector_right, (t3 - t2).total_microseconds() * 1e-3);
-    }
+    //     local_undistort_right = std::max(local_undistort_right, (t2 - t1).total_microseconds() * 1e-3);
+    //     local_vector_right = std::max(local_vector_right, (t3 - t2).total_microseconds() * 1e-3);
+    // }
 
-    #pragma omp critical
-    {
-        database->update_features_bulk(thread_local_updates_right);
-    }
+    // #pragma omp critical
+    // {
+    //     database->update_features_bulk(thread_local_updates_right);
+    // }
 
 
         // auto t_merge_start = boost::posix_time::microsec_clock::local_time();
@@ -456,15 +456,15 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
         // auto local_merge_time = (t_merge_end - t_merge_start).total_microseconds() * 1e-3;
 
         // Merge profiling metrics
-        #pragma omp critical
-        {
-            max_undistort_left = std::max(max_undistort_left, local_undistort_left);
-            max_undistort_right = std::max(max_undistort_right, local_undistort_right);
-            max_vector_left = std::max(max_vector_left, local_vector_left);
-            max_vector_right = std::max(max_vector_right, local_vector_right);
-            //max_merge_time = std::max(max_merge_time, local_merge_time);
-        }
-   }
+        // #pragma omp critical
+        // {
+        //     max_undistort_left = std::max(max_undistort_left, local_undistort_left);
+        //     max_undistort_right = std::max(max_undistort_right, local_undistort_right);
+        //     max_vector_left = std::max(max_vector_left, local_vector_left);
+        //     max_vector_right = std::max(max_vector_right, local_vector_right);
+        //     //max_merge_time = std::max(max_merge_time, local_merge_time);
+        // }
+   //}
 
         // auto St6 = boost::posix_time::microsec_clock::local_time();
         // database->update_features_bulk(thread_local_updates_left);
@@ -472,34 +472,34 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
         // auto En3 = boost::posix_time::microsec_clock::local_time();
 
         // Print results
-        printf(WHITE "[TIME-KLT]: %.4f ms for undistort_point_left (max per thread)\n" RESET, max_undistort_left);
-        printf(WHITE "[TIME-KLT]: %.4f ms for update_local_vector_left (max per thread)\n" RESET, max_vector_left);
-        printf(WHITE "[TIME-KLT]: %.4f ms for undistort_point_right (max per thread)\n" RESET, max_undistort_right);
-        printf(WHITE "[TIME-KLT]: %.4f ms for update_local_vector_right (max per thread)\n" RESET, max_vector_right);
-        printf(WHITE "[TIME-KLT]: %.4f ms for update_features_bulk\n" RESET, (En3 - St6).total_microseconds() * 1e-3);
+        // printf(WHITE "[TIME-KLT]: %.4f ms for undistort_point_left (max per thread)\n" RESET, max_undistort_left);
+        // printf(WHITE "[TIME-KLT]: %.4f ms for update_local_vector_left (max per thread)\n" RESET, max_vector_left);
+        // printf(WHITE "[TIME-KLT]: %.4f ms for undistort_point_right (max per thread)\n" RESET, max_undistort_right);
+        // printf(WHITE "[TIME-KLT]: %.4f ms for update_local_vector_right (max per thread)\n" RESET, max_vector_right);
+        // printf(WHITE "[TIME-KLT]: %.4f ms for update_features_bulk\n" RESET, (En3 - St6).total_microseconds() * 1e-3);
         //printf(WHITE "[TIME-KLT]: %.4f ms for database (total wall time)\n" RESET, (En3 - St3).total_microseconds() * 1e-3);
 
    
     
-    // for(size_t i=0; i<good_left.size(); i++) {
-    //     cv::Point2f npt_l = undistort_point(good_left.at(i).pt, cam_id_left);
-    //     //std::lock_guard<std::mutex> lock(db_mutex);
-    //     {
-    //     database->update_feature(good_ids_left.at(i), timestamp, cam_id_left,
-    //                              good_left.at(i).pt.x, good_left.at(i).pt.y,
-    //                              npt_l.x, npt_l.y);
-    //     }
-    // }
-    // //#pragma omp parallel for
-    // for(size_t i=0; i<good_right.size(); i++) {
-    //     cv::Point2f npt_r = undistort_point(good_right.at(i).pt, cam_id_right);
-    //     //std::lock_guard<std::mutex> lock(db_mutex);
-    //     {
-    //     database->update_feature(good_ids_right.at(i), timestamp, cam_id_right,
-    //                              good_right.at(i).pt.x, good_right.at(i).pt.y,
-    //                              npt_r.x, npt_r.y);
-    //     }
-    // }
+    for(size_t i=0; i<good_left.size(); i++) {
+        cv::Point2f npt_l = undistort_point(good_left.at(i).pt, cam_id_left);
+        //std::lock_guard<std::mutex> lock(db_mutex);
+        {
+        database->update_feature(good_ids_left.at(i), timestamp, cam_id_left,
+                                 good_left.at(i).pt.x, good_left.at(i).pt.y,
+                                 npt_l.x, npt_l.y);
+        }
+    }
+    //#pragma omp parallel for
+    for(size_t i=0; i<good_right.size(); i++) {
+        cv::Point2f npt_r = undistort_point(good_right.at(i).pt, cam_id_right);
+        //std::lock_guard<std::mutex> lock(db_mutex);
+        {
+        database->update_feature(good_ids_right.at(i), timestamp, cam_id_right,
+                                 good_right.at(i).pt.x, good_right.at(i).pt.y,
+                                 npt_r.x, npt_r.y);
+        }
+    }
     En3 = boost::posix_time::microsec_clock::local_time();
     // Move forward in time
     img_last[cam_id_left] = img_left.clone();
