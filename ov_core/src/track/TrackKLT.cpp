@@ -639,6 +639,7 @@ void TrackKLT::perform_matching(const std::vector<cv::Mat>& img0pyr, const std::
         pts0.push_back(kpts0.at(i).pt);
         pts1.push_back(kpts1.at(i).pt);
     }
+    printf(WHITE "[SIZE OF THE FEATURES]: %d :- number of features\n" , pts0.size()); 
 
     // If we don't have enough points for ransac just return empty
     // We set the mask to be all zeros since all points failed RANSAC
